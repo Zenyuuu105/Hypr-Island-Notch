@@ -1,0 +1,13 @@
+[StreamInputs]
+inputDevice=bluez_input.C2:B6:8D:CB:FE:76
+
+[StreamOutputs]
+outputDevice=bluez_output.C2_B6_8D_CB_FE_76.1
+plugins=equalizer#0,bass_enhancer#0,compressor#0,limiter#0
+visiblePage=pluginsPage
+visiblePlugin=equalizer#0
+
+[Window]
+autostartOnLogin=true
+height=340
+width=656

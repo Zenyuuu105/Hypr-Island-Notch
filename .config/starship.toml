@@ -1,0 +1,4 @@
+# Move the prompt to a new line below the path and configure the arrow
+[character]
+success_symbol = "[╰─>](bold dimmed white) "
+error_symbol = "[╰─>](bold red) "

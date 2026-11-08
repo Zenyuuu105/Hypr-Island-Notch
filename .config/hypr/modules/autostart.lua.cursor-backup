@@ -1,0 +1,18 @@
+-- ENV (must be set before the shell starts)
+hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/lib64/qt6/qml")
+
+-- AUTOSTART
+hl.on("hyprland.start", function()
+    -- hl.exec_cmd("waybar")
+    -- hl.exec_cmd("swaync")
+
+    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("qs --no-duplicate --path " .. os.getenv("HOME") .. "/.config/quickshell/dotarch")
+    hl.exec_cmd("~/.config/hypr/scripts/wallpaper-restore.sh")
+    hl.exec_cmd("hypridle")
+    hl.exec_cmd("easyeffects --gapplication-service")
+    
+    -- Apply macOS cursor theme
+    hl.exec_cmd("hyprctl setcursor macOS 24")
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-theme 'macOS'")
+end)

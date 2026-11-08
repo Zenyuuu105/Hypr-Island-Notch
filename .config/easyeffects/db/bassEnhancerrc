@@ -1,0 +1,6 @@
+[soe][BassEnhancer#0]
+amount=4
+blend=1
+floor=25
+floorActive=true
+harmonics=3

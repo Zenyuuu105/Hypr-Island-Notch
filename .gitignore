@@ -1,0 +1,8 @@
+*.log
+*.bak*
+*.pre-*
+*.before-*
+*.backup-*
+__pycache__/
+*.pyc
+todos.json
