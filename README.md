@@ -91,3 +91,7 @@ Existing wallpaper files are preserved and are not overwritten.
 After installation, log out or reboot and select the Hyprland UWSM session
 from your login manager. The installer does not automatically replace or
 enable your display manager.
+
+## Desktop Showcase
+
+[▶ Watch the desktop showcase](videos/desktop-showcase.mp4)
