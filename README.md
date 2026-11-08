@@ -30,6 +30,7 @@ My Arch Linux / CachyOS desktop setup.
 | `Super + E` | Open file explorer |
 | `Super + V` | Open clipboard history |
 | `Super + Space` | Open Control Center |
+| `Super + I` | Open Settings |
   
 ## Installation
 
