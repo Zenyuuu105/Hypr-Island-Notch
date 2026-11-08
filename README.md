@@ -22,6 +22,7 @@ My Arch Linux / CachyOS desktop setup.
 | `Super + Shift + T` | Open theme switcher |
 | `Super + Shift + W` | Open wallpaper switcher |
 | `Super + W` | Open secondary wallpaper switcher |
+| `Shift + Esc` | Open Power Menu |
 | `Super + Q` | Close active window |
 | `Alt + Enter` | Open terminal |
 | `Super + L` | Lock screen |
