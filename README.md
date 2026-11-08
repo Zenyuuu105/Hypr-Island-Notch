@@ -13,6 +13,9 @@ My Arch Linux / CachyOS desktop setup.
 - GTK and Qt theming
 - Wallpaper collection with theme-specific folders
 
+## Desktop Showcase
+
+https://github.com/user-attachments/assets/cad2262d-0c4e-4add-8171-a6d59314a5a9
 
 ## Keyboard Shortcuts
 
@@ -91,7 +94,3 @@ Existing wallpaper files are preserved and are not overwritten.
 After installation, log out or reboot and select the Hyprland UWSM session
 from your login manager. The installer does not automatically replace or
 enable your display manager.
-
-## Desktop Showcase
-
-[▶ Watch the desktop showcase](videos/desktop-showcase.mp4)
