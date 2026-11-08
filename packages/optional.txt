@@ -1,0 +1,22 @@
+# Apps I use. Install with: ./install.sh --optional
+firefox
+helium-browser-bin
+vscodium
+spotify-launcher
+vlc-plugins-all
+nautilus
+dolphin
+loupe
+qview
+easyeffects
+gnome-calculator
+gnome-text-editor
+gnome-tweaks
+micro
+meld
+blueman
+# Login manager
+sddm
+# Only if you use the Noctalia keybinds
+noctalia
+noctalia-greeter

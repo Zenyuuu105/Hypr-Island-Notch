@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+device=intel_backlight
+max=$(brightnessctl -d "$device" max)
+cur=$(brightnessctl -d "$device" get)
+pct=$(( (cur * 100 + max / 2) / max ))
+
+case "${1:-}" in
+  up) pct=$((pct + 5)) ;;
+  down) pct=$((pct - 5)) ;;
+  *) exit 2 ;;
+esac
+
+(( pct < 1 )) && pct=1
+(( pct > 100 )) && pct=100
+target=$(( (max * pct + 50) / 100 ))
+brightnessctl -d "$device" set "$target"

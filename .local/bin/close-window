@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+ACTIVE="$(hyprctl -j activewindow)"
+
+CLASS="$(python -c 'import json,sys; print(json.load(sys.stdin).get("class",""))' <<< "$ACTIVE")"
+TITLE="$(python -c 'import json,sys; print(json.load(sys.stdin).get("title",""))' <<< "$ACTIVE")"
+
+if [[ "$CLASS" == "org.quickshell" && "$TITLE" == "Shell Settings" ]]; then
+    qs --path "$HOME/.config/quickshell/dotarch" ipc call settings close
+else
+    hyprctl dispatch killactive
+fi

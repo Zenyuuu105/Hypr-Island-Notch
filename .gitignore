@@ -6,3 +6,6 @@
 __pycache__/
 *.pyc
 todos.json
+*.save
+*.cursor-backup
+.vscode/
