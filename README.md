@@ -13,6 +13,25 @@ My Arch Linux / CachyOS desktop setup.
 - GTK and Qt theming
 - Wallpaper collection with theme-specific folders
 
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Super` | Open application launcher |
+| `Super + Shift + T` | Open theme switcher |
+| `Super + Shift + W` | Open wallpaper switcher |
+| `Super + W` | Open secondary wallpaper switcher |
+| `Super + Q` | Close active window |
+| `Alt + Enter` | Open terminal |
+| `Super + L` | Lock screen |
+| `Fn + Print Screen` | Open screenshot and screen recording panel |
+| `Fn + Shift + Print Screen` | Take screenshot directly |
+| `Super + E` | Open file explorer |
+| `Super + V` | Open clipboard history |
+| `Super + Space` | Open Control Center |
+| `Super + I` | Open Settings |
+  
 ## Installation
 
 Start with a working Arch Linux or CachyOS installation with internet access,
