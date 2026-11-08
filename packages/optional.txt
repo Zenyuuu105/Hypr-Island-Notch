@@ -1,14 +1,12 @@
 # Apps I use. Install with: ./install.sh --optional
 firefox
 helium-browser-bin
-vscodium
+vscodium-bin
 spotify-launcher
 vlc-plugins-all
-nautilus
 dolphin
 loupe
 qview
-easyeffects
 gnome-calculator
 gnome-text-editor
 gnome-tweaks

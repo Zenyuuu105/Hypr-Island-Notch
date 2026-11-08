@@ -59,3 +59,15 @@ noto-fonts-emoji
 # Misc
 xdg-user-dirs
 gnome-keyring
+
+# Additional Dotarch and desktop dependencies
+jq
+glib2
+xdg-utils
+fontconfig
+qt5-wayland
+qt6-wayland
+xdg-desktop-portal-gtk
+polkit
+easyeffects
+nautilus
