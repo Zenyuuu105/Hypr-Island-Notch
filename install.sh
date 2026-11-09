@@ -271,6 +271,29 @@ if [[ -d "$REPO_DIR/.local/bin" ]]; then
 fi
 
 # --------------------------------------------------
+# iris (wallpaper color tool)
+# --------------------------------------------------
+
+if command -v pipx >/dev/null 2>&1; then
+    say "Installing iris"
+    run pipx install --force "git+https://github.com/Harman1307/iris.git"
+else
+    warn "pipx not found, skipping iris. Install python-pipx and rerun."
+fi
+
+# --------------------------------------------------
+# External monitor brightness (ddcutil needs i2c)
+# --------------------------------------------------
+
+if (( PKGS )); then
+    say "Setting up i2c for ddcutil"
+    run sudo groupadd -f i2c
+    run sudo usermod -aG i2c "$USER"
+    echo i2c-dev | run sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
+    warn "Log out and back in so the i2c group takes effect."
+fi
+
+# --------------------------------------------------
 # Wallpapers
 # --------------------------------------------------
 
