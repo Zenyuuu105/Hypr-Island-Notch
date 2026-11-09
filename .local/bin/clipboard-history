@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Wait until the Wayland clipboard is available
+while ! wl-paste --type text --no-newline >/dev/null 2>&1; do
+    sleep 1
+    break
+done
+
+# Record copied text and images in cliphist
+wl-paste --type text --watch cliphist store &
+wl-paste --type image --watch cliphist store &
+wait

@@ -70,3 +70,5 @@ xdg-desktop-portal-gtk
 polkit
 easyeffects
 nautilus
+ddcutil
+python-pipx

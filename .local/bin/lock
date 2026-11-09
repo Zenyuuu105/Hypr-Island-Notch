@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+WALLPAPER="$(awww query 2>/dev/null | sed -n 's/.*currently displaying: image: //p' | head -n1)"
+
+if [[ -z "$WALLPAPER" || ! -f "$WALLPAPER" ]]; then
+    WALLPAPER="$(find ~/Pictures/Wallpapers -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | head -n1)"
+fi
+
+if [[ -z "$WALLPAPER" ]]; then
+    echo "Could not find wallpaper."
+    exit 1
+fi
+
+cat > ~/.config/hypr/hyprlock.conf <<EOF2
+general {
+    hide_cursor = true
+    grace = 0
+}
+
+background {
+    monitor =
+    path = $WALLPAPER
+    blur_passes = 1
+    blur_size = 3
+    noise = 0.008
+    vibrancy = 0.12
+    brightness = 0.88
+    contrast = 1.0
+}
+
+# HOURS
+label {
+    monitor =
+    text = cmd[update:1000] date +"%I"
+    color = rgba(205,238,224,1.0)
+    font_size = 105
+    font_family = Noto Sans Bold
+    position = 0, 105
+    halign = center
+    valign = center
+}
+
+# MINUTES
+label {
+    monitor =
+    text = cmd[update:1000] date +"%M"
+    color = rgba(205,238,224,1.0)
+    font_size = 105
+    font_family = Noto Sans Bold
+    position = 0, -5
+    halign = center
+    valign = center
+}
+
+# WEEKDAY - ENGLISH
+label {
+    monitor =
+    text = cmd[update:60000] env LC_TIME=C date +"%A"
+    color = rgba(205,238,224,0.95)
+    font_size = 16
+    font_family = Noto Sans
+    position = 0, -100
+    halign = center
+    valign = center
+}
+
+# DATE - ENGLISH
+label {
+    monitor =
+    text = cmd[update:60000] env LC_TIME=C date +"%d %B %Y"
+    color = rgba(205,238,224,0.85)
+    font_size = 12
+    font_family = Noto Sans
+    position = 0, -125
+    halign = center
+    valign = center
+}
+
+# TRANSLUCENT GLASS PASSWORD FIELD
+input-field {
+    monitor =
+    size = 184, 40
+    outline_thickness = 0
+    dots_size = 0.25
+    dots_spacing = 0.3
+    dots_center = true
+    outer_color = rgba(205,238,224,0.55)
+    inner_color = rgba(230,245,240,0.28)
+    font_color = rgba(205,238,224,1.0)
+    fade_on_empty = false
+    placeholder_text =
+    placeholder_color = rgba(205,238,224,0.65)
+        position = 0, 85
+    halign = center
+    valign = bottom
+}
+EOF2
+
+chmod +x ~/.local/bin/lock
+exec hyprlock
