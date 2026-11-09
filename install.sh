@@ -315,6 +315,18 @@ if [[ "$HOME" != "$ORIGINAL_HOME" && "$DRY" -eq 0 ]]; then
         xargs -r sed -i "s|$ORIGINAL_HOME|$HOME|g" || true
 fi
 
+# --------------------------------------------------
+# Default theme (creates the Vyeos icon variants)
+# --------------------------------------------------
+
+THEME_SCRIPT="$HOME/.config/quickshell/dotarch/scripts/theme-system.sh"
+
+if [[ -x "$THEME_SCRIPT" && "$DRY" -eq 0 ]]; then
+    say "Applying default theme"
+    PATH="$HOME/.local/bin:$PATH" "$THEME_SCRIPT" apply deep-space \
+        || warn "Could not apply the default theme. Pick one after logging in."
+fi
+
 fi # DEPLOY
 
 # --------------------------------------------------
