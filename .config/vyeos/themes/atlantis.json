@@ -1,0 +1,32 @@
+{
+  "name": "Atlantis",
+  "slug": "atlantis",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#8aa9cf",
+    "bg0": "#93b4dc",
+    "bg1": "#78a1d4",
+    "bg2": "#6b93c4",
+    "bg3": "#5e84b4",
+    "bg4": "#5378a6",
+    "primary_container": "#8d97c2",
+    "secondary_container": "#8899af",
+    "foreground": "#1a1a1e",
+    "muted": "#445060",
+    "muted_dark": "#5d6f86",
+    "red": "#741b23",
+    "orange": "#74481b",
+    "yellow": "#62390e",
+    "green": "#1b741e",
+    "aqua": "#83c092",
+    "blue": "#1b4374",
+    "purple": "#3f2395",
+    "primary": "#773264"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "magenta"
+  },
+  "generated": true
+}

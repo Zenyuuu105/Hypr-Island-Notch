@@ -1,0 +1,32 @@
+{
+  "name": "Mint Garden",
+  "slug": "mint-garden",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26263b",
+    "bg2": "#35354c",
+    "bg3": "#44445e",
+    "bg4": "#51516d",
+    "primary_container": "#384441",
+    "secondary_container": "#403e3e",
+    "foreground": "#d7deb2",
+    "muted": "#949981",
+    "muted_dark": "#6e7164",
+    "red": "#e67e80",
+    "orange": "#decbb0",
+    "yellow": "#d0c395",
+    "green": "#95d78e",
+    "aqua": "#95d0b7",
+    "blue": "#95bfd0",
+    "purple": "#c595d0",
+    "primary": "#abdfa5"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

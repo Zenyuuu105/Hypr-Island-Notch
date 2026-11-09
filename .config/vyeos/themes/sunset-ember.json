@@ -1,0 +1,32 @@
+{
+  "name": "Sunset Ember",
+  "slug": "sunset-ember",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26263b",
+    "bg2": "#36364e",
+    "bg3": "#464660",
+    "bg4": "#545470",
+    "primary_container": "#483b3f",
+    "secondary_container": "#454142",
+    "foreground": "#e7d8b7",
+    "muted": "#9f9584",
+    "muted_dark": "#756e67",
+    "red": "#f0b69a",
+    "orange": "#ec9f79",
+    "yellow": "#e3d2ab",
+    "green": "#a0d095",
+    "aqua": "#9ceceb",
+    "blue": "#9596d0",
+    "purple": "#a195d0",
+    "primary": "#f0b69a"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "orange"
+  },
+  "generated": true
+}

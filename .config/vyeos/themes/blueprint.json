@@ -1,0 +1,32 @@
+{
+  "name": "Blueprint",
+  "slug": "blueprint",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#2f323c",
+    "bg0": "#3f4250",
+    "bg1": "#4f5264",
+    "bg2": "#5a5d6e",
+    "bg3": "#656879",
+    "bg4": "#6f7282",
+    "primary_container": "#575c6d",
+    "secondary_container": "#5e615f",
+    "foreground": "#bacad7",
+    "muted": "#8f9aa8",
+    "muted_dark": "#767f8d",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#ccd095",
+    "green": "#a0d095",
+    "aqua": "#b0ddd7",
+    "blue": "#adbad3",
+    "purple": "#a27ec8",
+    "primary": "#adbad3"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

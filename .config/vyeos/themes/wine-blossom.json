@@ -1,0 +1,32 @@
+{
+  "name": "Wine Blossom",
+  "slug": "wine-blossom",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#cec8ce",
+    "bg0": "#dbd5db",
+    "bg1": "#cac2ca",
+    "bg2": "#b8afb7",
+    "bg3": "#a69ca5",
+    "bg4": "#968c95",
+    "primary_container": "#c5b1bc",
+    "secondary_container": "#c4beb1",
+    "foreground": "#191a1f",
+    "muted": "#5d5b61",
+    "muted_dark": "#848186",
+    "red": "#8a2914",
+    "orange": "#953a23",
+    "yellow": "#746c1b",
+    "green": "#0e6211",
+    "aqua": "#1b5e74",
+    "blue": "#1b5e74",
+    "purple": "#6f2395",
+    "primary": "#76334e"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "pink"
+  },
+  "generated": true
+}

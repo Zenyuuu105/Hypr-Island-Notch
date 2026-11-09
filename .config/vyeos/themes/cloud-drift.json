@@ -1,0 +1,32 @@
+{
+  "name": "Cloud Drift",
+  "slug": "cloud-drift",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#20212c",
+    "bg0": "#2a2c3b",
+    "bg1": "#393c50",
+    "bg2": "#46485c",
+    "bg3": "#525468",
+    "bg4": "#5d5f73",
+    "primary_container": "#414557",
+    "secondary_container": "#4d504f",
+    "foreground": "#b1b8cd",
+    "muted": "#82879a",
+    "muted_dark": "#676b7d",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#c8d095",
+    "green": "#9cd095",
+    "aqua": "#95d0ba",
+    "blue": "#95bdd0",
+    "purple": "#9060bb",
+    "primary": "#929cba"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

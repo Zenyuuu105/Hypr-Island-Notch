@@ -1,0 +1,32 @@
+{
+  "name": "Nightshade",
+  "slug": "nightshade",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#181a23",
+    "bg0": "#20222f",
+    "bg1": "#2e3145",
+    "bg2": "#3d4055",
+    "bg3": "#4d5066",
+    "bg4": "#5a5d74",
+    "primary_container": "#3c3a49",
+    "secondary_container": "#454845",
+    "foreground": "#c5c6d8",
+    "muted": "#8b8d9d",
+    "muted_dark": "#6a6c7b",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#c8d095",
+    "green": "#9dd095",
+    "aqua": "#95d0ba",
+    "blue": "#95bdd0",
+    "purple": "#ab95d0",
+    "primary": "#a090a4"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

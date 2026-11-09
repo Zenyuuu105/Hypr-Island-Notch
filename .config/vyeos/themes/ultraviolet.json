@@ -1,0 +1,32 @@
+{
+  "name": "Ultraviolet",
+  "slug": "ultraviolet",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#bdc7ce",
+    "bg0": "#c9d4db",
+    "bg1": "#b3c3cd",
+    "bg2": "#a0b1bc",
+    "bg3": "#8d9fab",
+    "bg4": "#7d909c",
+    "primary_container": "#afafc6",
+    "secondary_container": "#b5bfb1",
+    "foreground": "#1a1a1e",
+    "muted": "#575b60",
+    "muted_dark": "#7a8086",
+    "red": "#95233f",
+    "orange": "#6d3a10",
+    "yellow": "#6c741b",
+    "green": "#1e741b",
+    "aqua": "#0e6230",
+    "blue": "#1e5880",
+    "purple": "#522a7c",
+    "primary": "#522a7c"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "violet"
+  },
+  "generated": true
+}

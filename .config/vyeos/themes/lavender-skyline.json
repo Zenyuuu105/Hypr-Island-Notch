@@ -1,0 +1,32 @@
+{
+  "name": "Lavender Skyline",
+  "slug": "lavender-skyline",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#32313b",
+    "bg0": "#43414e",
+    "bg1": "#535161",
+    "bg2": "#5f5d6c",
+    "bg3": "#6a6877",
+    "bg4": "#747280",
+    "primary_container": "#595362",
+    "secondary_container": "#5d605e",
+    "foreground": "#bcced8",
+    "muted": "#929da8",
+    "muted_dark": "#79808c",
+    "red": "#c57792",
+    "orange": "#e69875",
+    "yellow": "#bad095",
+    "green": "#95d09c",
+    "aqua": "#b0ddd4",
+    "blue": "#95b0d0",
+    "purple": "#ba97d0",
+    "primary": "#a891a7"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

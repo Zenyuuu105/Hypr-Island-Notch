@@ -1,0 +1,32 @@
+{
+  "name": "Overgrown",
+  "slug": "overgrown",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#a7b1b3",
+    "bg0": "#b2bcbe",
+    "bg1": "#9eabad",
+    "bg2": "#909c9e",
+    "bg3": "#828e90",
+    "bg4": "#768183",
+    "primary_container": "#92a79b",
+    "secondary_container": "#a0a697",
+    "foreground": "#19191f",
+    "muted": "#4f5257",
+    "muted_dark": "#6d7376",
+    "red": "#742d1b",
+    "orange": "#742d1b",
+    "yellow": "#62580e",
+    "green": "#215e20",
+    "aqua": "#1b6874",
+    "blue": "#1b6874",
+    "purple": "#622291",
+    "primary": "#215e20"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

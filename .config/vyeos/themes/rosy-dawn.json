@@ -1,0 +1,32 @@
+{
+  "name": "Rosy Dawn",
+  "slug": "rosy-dawn",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26273b",
+    "bg2": "#35374d",
+    "bg3": "#45465f",
+    "bg4": "#52546e",
+    "primary_container": "#473341",
+    "secondary_container": "#454242",
+    "foreground": "#e7dbb1",
+    "muted": "#9f9780",
+    "muted_dark": "#757064",
+    "red": "#ed93a5",
+    "orange": "#ec9f79",
+    "yellow": "#e5d8a9",
+    "green": "#9bedb6",
+    "aqua": "#7de8a1",
+    "blue": "#95aad0",
+    "purple": "#b395d0",
+    "primary": "#ed93a5"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "red"
+  },
+  "generated": true
+}

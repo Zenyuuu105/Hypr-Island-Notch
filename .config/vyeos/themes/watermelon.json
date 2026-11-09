@@ -1,0 +1,32 @@
+{
+  "name": "Watermelon",
+  "slug": "watermelon",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#e0879e",
+    "bg0": "#ee90a8",
+    "bg1": "#e97190",
+    "bg2": "#d66582",
+    "bg3": "#c35974",
+    "bg4": "#b34f68",
+    "primary_container": "#c0828a",
+    "secondary_container": "#cf8186",
+    "foreground": "#181920",
+    "muted": "#634350",
+    "muted_dark": "#8e5a6b",
+    "red": "#631f0d",
+    "orange": "#631f0d",
+    "yellow": "#624d0e",
+    "green": "#1b741e",
+    "aqua": "#1b5e74",
+    "blue": "#1b5e74",
+    "purple": "#4f1e80",
+    "primary": "#1c511e"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

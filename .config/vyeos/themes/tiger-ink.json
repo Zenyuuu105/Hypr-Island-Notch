@@ -1,0 +1,32 @@
+{
+  "name": "Tiger Ink",
+  "slug": "tiger-ink",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#d7cbc3",
+    "bg0": "#e5d8cf",
+    "bg1": "#d9c5b8",
+    "bg2": "#c8b2a3",
+    "bg3": "#b69e8f",
+    "bg4": "#a78e7d",
+    "primary_container": "#c0b6b3",
+    "secondary_container": "#cab8a5",
+    "foreground": "#1a1a1f",
+    "muted": "#615d5d",
+    "muted_dark": "#8a8380",
+    "red": "#813712",
+    "orange": "#84491f",
+    "yellow": "#6b450f",
+    "green": "#a7c080",
+    "aqua": "#1b744f",
+    "blue": "#1c5f76",
+    "purple": "#6f2395",
+    "primary": "#3c3d51"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

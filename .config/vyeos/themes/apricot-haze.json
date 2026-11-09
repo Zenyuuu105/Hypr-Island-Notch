@@ -1,0 +1,32 @@
+{
+  "name": "Apricot Haze",
+  "slug": "apricot-haze",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#2e2f3d",
+    "bg0": "#3d3f51",
+    "bg1": "#4d4f66",
+    "bg2": "#5a5c73",
+    "bg3": "#67697f",
+    "bg4": "#72748a",
+    "primary_container": "#605e68",
+    "secondary_container": "#605e68",
+    "foreground": "#e5d6c9",
+    "muted": "#aaa19f",
+    "muted_dark": "#898387",
+    "red": "#d0b095",
+    "orange": "#d0b095",
+    "yellow": "#decbba",
+    "green": "#9ad095",
+    "aqua": "#95d0bd",
+    "blue": "#9b9dd2",
+    "purple": "#cc90d5",
+    "primary": "#decbba"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "orange"
+  },
+  "generated": true
+}

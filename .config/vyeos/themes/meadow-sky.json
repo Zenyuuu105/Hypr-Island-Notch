@@ -1,0 +1,32 @@
+{
+  "name": "Meadow Sky",
+  "slug": "meadow-sky",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#8ca9cd",
+    "bg0": "#95b4da",
+    "bg1": "#7ba2d1",
+    "bg2": "#6e94c1",
+    "bg3": "#6085b2",
+    "bg4": "#5579a4",
+    "primary_container": "#7e9fb2",
+    "secondary_container": "#8aa2ad",
+    "foreground": "#1a1a1e",
+    "muted": "#455060",
+    "muted_dark": "#5e6f85",
+    "red": "#741b40",
+    "orange": "#62620e",
+    "yellow": "#62620e",
+    "green": "#2e5524",
+    "aqua": "#0e6233",
+    "blue": "#1b4074",
+    "purple": "#492395",
+    "primary": "#2e5524"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

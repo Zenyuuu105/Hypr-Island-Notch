@@ -1,0 +1,32 @@
+{
+  "name": "Blue Hour",
+  "slug": "blue-hour",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#1d1d29",
+    "bg0": "#272737",
+    "bg1": "#35364d",
+    "bg2": "#43445b",
+    "bg3": "#515269",
+    "bg4": "#5d5e75",
+    "primary_container": "#514b50",
+    "secondary_container": "#514b50",
+    "foreground": "#e6cba9",
+    "muted": "#a39281",
+    "muted_dark": "#7d716a",
+    "red": "#e6cba9",
+    "orange": "#e6cba9",
+    "yellow": "#e6cba8",
+    "green": "#99d095",
+    "aqua": "#95d0be",
+    "blue": "#95bad0",
+    "purple": "#af95d0",
+    "primary": "#e6cba9"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "orange"
+  },
+  "generated": true
+}

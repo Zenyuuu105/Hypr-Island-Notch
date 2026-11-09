@@ -1,0 +1,32 @@
+{
+  "name": "Ice Glass",
+  "slug": "ice-glass",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26263b",
+    "bg2": "#36364d",
+    "bg3": "#46465f",
+    "bg4": "#53536e",
+    "primary_container": "#35424e",
+    "secondary_container": "#3d403e",
+    "foreground": "#c1d7d0",
+    "muted": "#869494",
+    "muted_dark": "#646e72",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#c2d095",
+    "green": "#97d095",
+    "aqua": "#95d0c0",
+    "blue": "#95b8d0",
+    "purple": "#8d54b6",
+    "primary": "#9ad5de"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "teal"
+  },
+  "generated": true
+}

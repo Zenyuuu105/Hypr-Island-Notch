@@ -1,0 +1,33 @@
+{
+  "name": "Ariadne",
+  "slug": "ariadne",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#060b0c",
+    "bg0": "#091113",
+    "bg1": "#121d20",
+    "bg2": "#1a2a2d",
+    "bg3": "#23363b",
+    "bg4": "#2c4349",
+    "primary_container": "#7BCA9B",
+    "secondary_container": "#E8C265",
+    "foreground": "#FFFFFF",
+    "muted": "#8b9c9f",
+    "muted_dark": "#4d5b5e",
+    "red": "#E6685B",
+    "orange": "#E6685B",
+    "yellow": "#E8C265",
+    "green": "#7BCA9B",
+    "aqua": "#42BBA0",
+    "blue": "#66BDCD",
+    "purple": "#E19AA9",
+    "primary": "#42BBA0",
+    "uiAccent": "#42BBA0"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "teal"
+  },
+  "generated": false
+}

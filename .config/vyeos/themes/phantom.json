@@ -1,0 +1,32 @@
+{
+  "name": "Phantom",
+  "slug": "phantom",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26263b",
+    "bg2": "#34344b",
+    "bg3": "#43435a",
+    "bg4": "#4f4f68",
+    "primary_container": "#413747",
+    "secondary_container": "#3d403e",
+    "foreground": "#d5a9c2",
+    "muted": "#93768b",
+    "muted_dark": "#6d596c",
+    "red": "#d8a4a3",
+    "orange": "#d8a4a3",
+    "yellow": "#c1d095",
+    "green": "#95d095",
+    "aqua": "#95d0c1",
+    "blue": "#95b6d0",
+    "purple": "#b295d0",
+    "primary": "#d4a7c1"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "magenta"
+  },
+  "generated": true
+}

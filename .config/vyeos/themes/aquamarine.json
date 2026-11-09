@@ -1,0 +1,32 @@
+{
+  "name": "Aquamarine",
+  "slug": "aquamarine",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#90c6d4",
+    "bg0": "#99d3e2",
+    "bg1": "#7dc7db",
+    "bg2": "#6eb8cc",
+    "bg3": "#5fa8bc",
+    "bg4": "#529baf",
+    "primary_container": "#7eb7ce",
+    "secondary_container": "#91bcb6",
+    "foreground": "#1a1b1e",
+    "muted": "#465b63",
+    "muted_dark": "#60808a",
+    "red": "#86341f",
+    "orange": "#86341f",
+    "yellow": "#746c1b",
+    "green": "#36620e",
+    "aqua": "#1b744f",
+    "blue": "#205387",
+    "purple": "#492395",
+    "primary": "#205387"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

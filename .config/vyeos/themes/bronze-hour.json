@@ -1,0 +1,32 @@
+{
+  "name": "Bronze Hour",
+  "slug": "bronze-hour",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#c4d3c8",
+    "bg0": "#d0e0d5",
+    "bg1": "#bbd1c2",
+    "bg2": "#a7c0af",
+    "bg3": "#93ae9c",
+    "bg4": "#829f8c",
+    "primary_container": "#bfc2ae",
+    "secondary_container": "#b8c0a9",
+    "foreground": "#181820",
+    "muted": "#585e5f",
+    "muted_dark": "#7d8684",
+    "red": "#7c4f1d",
+    "orange": "#7c4f1d",
+    "yellow": "#624d0e",
+    "green": "#0e622a",
+    "aqua": "#1b7439",
+    "blue": "#1c6178",
+    "purple": "#5c2395",
+    "primary": "#835725"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "orange"
+  },
+  "generated": true
+}

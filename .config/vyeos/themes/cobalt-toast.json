@@ -1,0 +1,32 @@
+{
+  "name": "Cobalt Toast",
+  "slug": "cobalt-toast",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#d4cbc6",
+    "bg0": "#e2d8d3",
+    "bg1": "#d4c5bd",
+    "bg2": "#c2b1a9",
+    "bg3": "#b09e95",
+    "bg4": "#a18d84",
+    "primary_container": "#b9bcc1",
+    "secondary_container": "#cabbab",
+    "foreground": "#1b1b1d",
+    "muted": "#615d5d",
+    "muted_dark": "#888381",
+    "red": "#882f13",
+    "orange": "#882f13",
+    "yellow": "#76521c",
+    "green": "#a7c080",
+    "aqua": "#1b744f",
+    "blue": "#295983",
+    "purple": "#782395",
+    "primary": "#295983"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

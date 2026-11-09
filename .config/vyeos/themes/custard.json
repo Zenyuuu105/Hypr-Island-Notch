@@ -1,0 +1,32 @@
+{
+  "name": "Custard",
+  "slug": "custard",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#d8d1a6",
+    "bg0": "#e6deb1",
+    "bg1": "#ded396",
+    "bg2": "#cec383",
+    "bg3": "#beb371",
+    "bg4": "#b1a561",
+    "primary_container": "#ccb99f",
+    "secondary_container": "#c9be8d",
+    "foreground": "#181920",
+    "muted": "#605e53",
+    "muted_dark": "#898570",
+    "red": "#8f4619",
+    "orange": "#7f3c12",
+    "yellow": "#624d0e",
+    "green": "#3d620e",
+    "aqua": "#1b744f",
+    "blue": "#1c6178",
+    "purple": "#6e2395",
+    "primary": "#713860"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "magenta"
+  },
+  "generated": true
+}

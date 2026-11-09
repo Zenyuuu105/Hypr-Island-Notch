@@ -1,0 +1,32 @@
+{
+  "name": "Lagoon",
+  "slug": "lagoon",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#2f323c",
+    "bg0": "#3f4250",
+    "bg1": "#4f5364",
+    "bg2": "#5c5f70",
+    "bg3": "#686c7c",
+    "bg4": "#737686",
+    "primary_container": "#515d70",
+    "secondary_container": "#5e615f",
+    "foreground": "#ccdbd3",
+    "muted": "#9ba5a5",
+    "muted_dark": "#7e878b",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#ccd095",
+    "green": "#b6ddb0",
+    "aqua": "#95d0b6",
+    "blue": "#91bde1",
+    "purple": "#a37ec8",
+    "primary": "#91bde1"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

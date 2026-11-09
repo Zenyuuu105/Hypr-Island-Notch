@@ -1,0 +1,32 @@
+{
+  "name": "Deep Space",
+  "slug": "deep-space",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#12121c",
+    "bg0": "#181825",
+    "bg1": "#26263b",
+    "bg2": "#34344b",
+    "bg3": "#43435a",
+    "bg4": "#4f4f68",
+    "primary_container": "#343945",
+    "secondary_container": "#3d403e",
+    "foreground": "#b4c4cb",
+    "muted": "#7d8891",
+    "muted_dark": "#5e6570",
+    "red": "#e67e80",
+    "orange": "#e69875",
+    "yellow": "#c1d095",
+    "green": "#95d095",
+    "aqua": "#95d0c1",
+    "blue": "#95b6d0",
+    "purple": "#b395d0",
+    "primary": "#95acb5"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

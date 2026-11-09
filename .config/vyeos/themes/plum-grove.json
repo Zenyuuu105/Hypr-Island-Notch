@@ -1,0 +1,32 @@
+{
+  "name": "Plum Grove",
+  "slug": "plum-grove",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#a2a1b8",
+    "bg0": "#acabc4",
+    "bg1": "#9796b5",
+    "bg2": "#8988a6",
+    "bg3": "#7b7a98",
+    "bg4": "#6f6e8b",
+    "primary_container": "#9f90ac",
+    "secondary_container": "#a0979f",
+    "foreground": "#1a1a1e",
+    "muted": "#4d4d58",
+    "muted_dark": "#6a6a79",
+    "red": "#620e3c",
+    "orange": "#744f1b",
+    "yellow": "#744f1b",
+    "green": "#15620e",
+    "aqua": "#83c092",
+    "blue": "#1d367c",
+    "purple": "#46218f",
+    "primary": "#733256"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "magenta"
+  },
+  "generated": true
+}

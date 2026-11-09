@@ -1,0 +1,32 @@
+{
+  "name": "Kiwi",
+  "slug": "kiwi",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#d6cdc4",
+    "bg0": "#e4dad1",
+    "bg1": "#d7c8ba",
+    "bg2": "#c6b5a5",
+    "bg3": "#b4a291",
+    "bg4": "#a5917f",
+    "primary_container": "#bcc4ac",
+    "secondary_container": "#cbbfa9",
+    "foreground": "#191a1f",
+    "muted": "#605d5d",
+    "muted_dark": "#898481",
+    "red": "#764011",
+    "orange": "#764011",
+    "yellow": "#74601b",
+    "green": "#1c741b",
+    "aqua": "#1b7462",
+    "blue": "#233a95",
+    "purple": "#652395",
+    "primary": "#2c762b"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

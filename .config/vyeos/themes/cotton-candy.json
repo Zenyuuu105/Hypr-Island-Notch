@@ -1,0 +1,32 @@
+{
+  "name": "Cotton Candy",
+  "slug": "cotton-candy",
+  "appearance": "light",
+  "colors": {
+    "bg_dim": "#ceafb8",
+    "bg0": "#dbbac4",
+    "bg1": "#cfa3b0",
+    "bg2": "#bf919f",
+    "bg3": "#af7f8e",
+    "bg4": "#a1707f",
+    "primary_container": "#bba2ae",
+    "secondary_container": "#c0a39c",
+    "foreground": "#1a1b1e",
+    "muted": "#5e5358",
+    "muted_dark": "#847279",
+    "red": "#7b1228",
+    "orange": "#74641b",
+    "yellow": "#62530e",
+    "green": "#a7c080",
+    "aqua": "#1b744f",
+    "blue": "#1b5e74",
+    "purple": "#652395",
+    "primary": "#4b4f62"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

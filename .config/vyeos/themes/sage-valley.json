@@ -1,0 +1,32 @@
+{
+  "name": "Sage Valley",
+  "slug": "sage-valley",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#2e313c",
+    "bg0": "#3e4150",
+    "bg1": "#4e5264",
+    "bg2": "#5a5e6f",
+    "bg3": "#666a7a",
+    "bg4": "#707484",
+    "primary_container": "#5e6269",
+    "secondary_container": "#616165",
+    "foreground": "#d1d7c4",
+    "muted": "#9ea29b",
+    "muted_dark": "#808484",
+    "red": "#e67e80",
+    "orange": "#ddd1b0",
+    "yellow": "#ddd1b0",
+    "green": "#9fd095",
+    "aqua": "#95d0b8",
+    "blue": "#95c0d0",
+    "purple": "#ae9bd2",
+    "primary": "#d0d6c2"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "bluegrey"
+  },
+  "generated": true
+}

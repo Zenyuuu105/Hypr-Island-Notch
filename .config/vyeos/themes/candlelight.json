@@ -1,0 +1,32 @@
+{
+  "name": "Candlelight",
+  "slug": "candlelight",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#30323b",
+    "bg0": "#40434f",
+    "bg1": "#505362",
+    "bg2": "#5b5e6c",
+    "bg3": "#666977",
+    "bg4": "#707380",
+    "primary_container": "#626366",
+    "secondary_container": "#60605e",
+    "foreground": "#d9d5b6",
+    "muted": "#a3a292",
+    "muted_dark": "#85857d",
+    "red": "#e67e80",
+    "orange": "#d0c995",
+    "yellow": "#d0c995",
+    "green": "#8ecf97",
+    "aqua": "#95d0ca",
+    "blue": "#95b1d0",
+    "purple": "#b29cd3",
+    "primary": "#d9d5b6"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "yellow"
+  },
+  "generated": true
+}
