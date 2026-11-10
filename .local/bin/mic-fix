@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# mic-fix: recover the Bluetooth headset mic in one go
+MAC="${MIC_MAC:-41:42:A0:5A:57:D3}"
+CARD="bluez_card.${MAC//:/_}"
+SRC="bluez_input.${MAC}"
+note() { command -v notify-send >/dev/null && notify-send -a "Mic fix" "$1"; echo "$1"; }
+
+bluetoothctl disconnect "$MAC" >/dev/null 2>&1
+systemctl --user restart wireplumber
+sleep 2
+bluetoothctl connect "$MAC" >/dev/null 2>&1
+
+for _ in $(seq 1 12); do
+  pactl list short cards | grep -q "$CARD" && break
+  sleep 1
+done
+
+pactl set-card-profile "$CARD" headset-head-unit
+sleep 2
+
+if pactl list short sources | grep -q "$SRC"; then
+  pactl set-default-source "$SRC"
+  pactl set-source-mute "$SRC" 0
+  pactl set-source-volume "$SRC" 100%
+  note "Headset mic ready"
+else
+  note "Mic fix failed: headset not connected"
+  exit 1
+fi
