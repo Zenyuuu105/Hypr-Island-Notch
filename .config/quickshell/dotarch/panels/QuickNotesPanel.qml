@@ -8,13 +8,15 @@ FocusScope {
     id: root
 
     property int editingIndex: -1
-    property int recentIndex: NotesState.notes.length > 0 ? 0 : -1
+    property int recentIndex: root.listNotes.length > 0 ? 0 : -1
     property int paletteIndex: 0
     property int historyIndex: -1
     property var history: []
     property bool restoringHistory: false
     property bool confirmingDelete: false
     property bool paletteOpen: false
+    property string listQuery: ""
+    property string tagFilter: ""
     readonly property bool editorMode: NotesState.activePath.length > 0
     readonly property var paletteNotes: NotesState.notes.filter((note) => {
         const query = paletteInput.text.trim().toLowerCase();
@@ -35,6 +37,49 @@ FocusScope {
         return null;
     }
 
+    function noteTags(note) {
+        const text = String(note.searchText || "");
+        const found = [];
+        const pattern = /(^|\s)#([A-Za-z][A-Za-z0-9_-]*)/g;
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+            const tag = match[2].toLowerCase();
+            if (found.indexOf(tag) < 0)
+                found.push(tag);
+        }
+        return found;
+    }
+
+    readonly property var allTags: {
+        const seen = {};
+        const out = [];
+        for (let i = 0; i < NotesState.notes.length; i++) {
+            const tags = noteTags(NotesState.notes[i]);
+            for (let j = 0; j < tags.length; j++) {
+                if (!seen[tags[j]]) {
+                    seen[tags[j]] = true;
+                    out.push(tags[j]);
+                }
+            }
+        }
+        out.sort();
+        return out;
+    }
+
+    readonly property var listNotes: NotesState.notes.filter((note) => {
+        const query = listQuery.trim().toLowerCase();
+        if (query && !String(note.searchText || note.title || "").toLowerCase().includes(query))
+            return false;
+        if (tagFilter && noteTags(note).indexOf(tagFilter) < 0)
+            return false;
+        return true;
+    })
+
+    onAllTagsChanged: {
+        if (tagFilter && allTags.indexOf(tagFilter) < 0)
+            tagFilter = "";
+    }
+
     function takeInitialFocus() {
         NotesState.refresh();
         if (editorMode)
@@ -53,11 +98,11 @@ FocusScope {
     }
 
     function selectRecent(index) {
-        if (NotesState.notes.length === 0) {
+        if (root.listNotes.length === 0) {
             recentIndex = -1;
             return;
         }
-        recentIndex = Math.max(0, Math.min(index, NotesState.notes.length - 1));
+        recentIndex = Math.max(0, Math.min(index, root.listNotes.length - 1));
         notesList.currentIndex = recentIndex;
         notesList.positionViewAtIndex(recentIndex, ListView.Contain);
         Qt.callLater(() => {
@@ -68,20 +113,20 @@ FocusScope {
     }
 
     function moveRecent(offset) {
-        selectRecent((recentIndex < 0 ? (offset > 0 ? -1 : NotesState.notes.length) : recentIndex) + offset);
+        selectRecent((recentIndex < 0 ? (offset > 0 ? -1 : root.listNotes.length) : recentIndex) + offset);
     }
 
     function openRecent(index) {
-        if (index < 0 || index >= NotesState.notes.length)
+        if (index < 0 || index >= root.listNotes.length)
             return;
-        NotesState.openNote(NotesState.notes[index].path);
+        NotesState.openNote(root.listNotes[index].path);
     }
 
     function deleteRecent(index) {
-        if (index < 0 || index >= NotesState.notes.length)
+        if (index < 0 || index >= root.listNotes.length)
             return;
-        NotesState.deleteNote(NotesState.notes[index].path);
-        recentIndex = Math.min(index, NotesState.notes.length - 2);
+        NotesState.deleteNote(root.listNotes[index].path);
+        recentIndex = Math.min(index, root.listNotes.length - 2);
     }
 
     function togglePalette() {
@@ -406,6 +451,22 @@ FocusScope {
                 }
             }
 
+            ShellText {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !root.editorMode
+                text: "+ New note"
+                color: Theme.primary
+                font.pixelSize: 13
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.createAndOpenNote()
+                }
+            }
+
             Row {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
@@ -484,21 +545,121 @@ FocusScope {
 
             Column {
                 anchors.fill: parent
+                spacing: 8
+
+                Item {
+                    id: searchBox
+
+                    width: parent.width
+                    height: 34
+
+                    TextInput {
+                        id: listSearchInput
+
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        leftPadding: 2
+                        color: Theme.foreground
+                        selectionColor: Theme.primaryContainer
+                        selectedTextColor: Theme.foreground
+                        font.family: Theme.fontFamily
+                        font.pixelSize: 14
+                        clip: true
+                        onTextChanged: root.listQuery = text
+                        Keys.onDownPressed: root.selectRecent(0)
+                        Keys.onReturnPressed: root.openRecent(0)
+                        Keys.onEnterPressed: root.openRecent(0)
+                        Keys.onDeletePressed: (event) => event.accepted = true
+                        Keys.onEscapePressed: (event) => {
+                            clear();
+                            root.forceActiveFocus(Qt.OtherFocusReason);
+                            event.accepted = true;
+                        }
+
+                        ShellText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Search notes…"
+                            color: Theme.mutedDark
+                            visible: !parent.text
+                            font.pixelSize: 13
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        height: listSearchInput.activeFocus ? 2 : 1
+                        color: listSearchInput.activeFocus ? Theme.primary : Theme.bg3
+                    }
+                }
+
+                Flickable {
+                    id: tagRow
+
+                    width: parent.width
+                    height: 28
+                    visible: root.allTags.length > 0
+                    contentWidth: tagChips.width
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    flickableDirection: Flickable.HorizontalFlick
+
+                    Row {
+                        id: tagChips
+
+                        spacing: 8
+
+                        Repeater {
+                            model: [""].concat(root.allTags)
+
+                            delegate: Rectangle {
+                                id: chip
+
+                                required property var modelData
+                                readonly property bool on: root.tagFilter === modelData
+
+                                width: chipLabel.implicitWidth + 22
+                                height: 26
+                                radius: 13
+                                color: on ? Theme.primaryContainer : "transparent"
+                                border.width: 1
+                                border.color: on ? Theme.primary : Theme.bg3
+
+                                ShellText {
+                                    id: chipLabel
+
+                                    anchors.centerIn: parent
+                                    text: chip.modelData ? "#" + chip.modelData : "All"
+                                    color: chip.on ? Theme.foreground : Theme.muted
+                                    font.pixelSize: 12
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.tagFilter = chip.modelData
+                                }
+                            }
+                        }
+                    }
+                }
 
                 ListView {
                     id: notesList
                     width: parent.width
-                    height: parent.height
-                    model: NotesState.notes
+                    height: parent.height - searchBox.height - (tagRow.visible ? tagRow.height + 8 : 0) - 8
+                    model: root.listNotes
                     currentIndex: root.recentIndex
-                    spacing: 3
+                    spacing: 6
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
                     ShellText {
                         anchors.centerIn: parent
                         visible: notesList.count === 0
-                        text: NotesState.lastError || "No notes yet."
+                        text: NotesState.lastError || (root.listQuery || root.tagFilter ? "No matching notes." : "No notes yet.")
                         color: NotesState.lastError ? Theme.red : Theme.mutedDark
                         font.pixelSize: 13
                     }
@@ -509,7 +670,7 @@ FocusScope {
                         required property int index
                         readonly property bool selected: root.recentIndex === index
                         width: ListView.view.width
-                        height: 44
+                        height: 54
                         activeFocusOnTab: true
                         Keys.onReturnPressed: NotesState.openNote(modelData.path)
                         Keys.onEnterPressed: NotesState.openNote(modelData.path)

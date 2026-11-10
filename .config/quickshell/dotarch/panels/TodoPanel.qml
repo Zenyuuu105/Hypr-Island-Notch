@@ -8,20 +8,69 @@ FocusScope {
     property string currentView: "all"
     property string editingId: ""
     property string detailsId: ""
-    property bool textEditorActive: todoInput.activeFocus || categoryInput.activeFocus || dateInput.activeFocus || notesInput.activeFocus || editingId !== ""
+    property bool confirmClearAll: false
+    property bool schedBad: false
+    property string searchQuery: ""
+    property string sortMode: "manual"
+    property bool textEditorActive: todoInput.activeFocus || schedInput.activeFocus || categoryInput.activeFocus || dateInput.activeFocus || notesInput.activeFocus || searchInput.activeFocus || editingId !== ""
     readonly property string today: ShellState.todayKey()
     readonly property string tomorrow: ShellState.tomorrowKey()
     readonly property var visibleTodos: filterTodos(ShellState.todos)
     readonly property int detailsIndex: sourceIndexForId(detailsId)
     readonly property var detailsTask: detailsIndex >= 0 ? ShellState.todos[detailsIndex] : null
 
+    function cycleSort() {
+        const modes = ["manual", "due", "priority"];
+        sortMode = modes[(modes.indexOf(sortMode) + 1) % modes.length];
+    }
+
+    function isoDate(d) {
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        return d.getFullYear().toString() + "-" + (m < 10 ? "0" : "") + m + "-" + (day < 10 ? "0" : "") + day;
+    }
+
+    function shiftDate(days) {
+        if (!detailsTask)
+            return;
+        const parts = (detailsTask.dueDate || today).split("-");
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]) + days);
+        ShellState.updateTodo(detailsIndex, { "dueDate": isoDate(d) });
+    }
+
     function takeInitialFocus() {
         todoInput.forceActiveFocus(Qt.TabFocusReason);
     }
 
     function addTodo() {
+        let date = "";
+        if (currentView === "today") {
+            date = today;
+        } else if (currentView === "tomorrow") {
+            date = tomorrow;
+        } else if (currentView === "scheduled") {
+            const typed = schedInput.text.trim();
+            date = typed ? parseDisplayDate(typed) : tomorrow;
+            if (!date) {
+                schedBad = true;
+                return;
+            }
+        }
+        const before = {};
+        for (let i = 0; i < ShellState.todos.length; i++)
+            before[ShellState.todos[i].id] = true;
         ShellState.addTodo(todoInput.text);
+        if (date) {
+            for (let i = 0; i < ShellState.todos.length; i++) {
+                const t = ShellState.todos[i];
+                if (!before[t.id] && !t.dueDate) {
+                    ShellState.updateTodo(i, { "dueDate": date });
+                    break;
+                }
+            }
+        }
         todoInput.clear();
+        schedInput.clear();
     }
 
     function filterTodos(todos) {
@@ -35,9 +84,31 @@ FocusScope {
                 continue;
             if (currentView === "scheduled" && !due)
                 continue;
+            if (searchQuery) {
+                const haystack = (task.text + " " + (task.category || "") + " " + (task.notes || "")).toLowerCase();
+                if (haystack.indexOf(searchQuery.toLowerCase()) < 0)
+                    continue;
+            }
             result.push({
                 "sourceIndex": i,
                 "task": task
+            });
+        }
+        if (sortMode !== "manual") {
+            const rank = { "high": 3, "medium": 2, "low": 1 };
+            result.sort((a, b) => {
+                if (sortMode === "due") {
+                    const ad = a.task.dueDate || "9999-99-99";
+                    const bd = b.task.dueDate || "9999-99-99";
+                    if (ad !== bd)
+                        return ad < bd ? -1 : 1;
+                } else {
+                    const ar = rank[a.task.priority] || 0;
+                    const br = rank[b.task.priority] || 0;
+                    if (ar !== br)
+                        return br - ar;
+                }
+                return a.sourceIndex - b.sourceIndex;
             });
         }
         return result;
@@ -94,6 +165,8 @@ FocusScope {
     }
 
     function reorderSelected(offset) {
+        if (sortMode !== "manual" || searchQuery)
+            return;
         const current = taskList.currentIndex;
         const target = current + offset;
         if (current < 0 || target < 0 || target >= visibleTodos.length)
@@ -206,11 +279,11 @@ FocusScope {
         id: content
 
         width: parent.width
-        spacing: 8
+        spacing: 14
 
         Item {
             width: parent.width
-            height: 30
+            height: 36
 
             ShellText {
                 anchors.left: parent.left
@@ -224,11 +297,11 @@ FocusScope {
 
         Row {
             width: parent.width
-            height: 36
+            height: 42
             spacing: 0
 
             Item {
-                width: parent.width
+                width: parent.width - (schedBox.visible ? schedBox.width : 0)
                 height: parent.height
 
                 TextInput {
@@ -267,14 +340,57 @@ FocusScope {
                 }
             }
 
+            Item {
+                id: schedBox
+
+                width: 96
+                height: parent.height
+                visible: root.currentView === "scheduled"
+
+                TextInput {
+                    id: schedInput
+
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: root.schedBad ? Theme.red : Theme.foreground
+                    selectionColor: Theme.primaryContainer
+                    selectedTextColor: Theme.foreground
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 13
+                    activeFocusOnTab: true
+                    onTextChanged: root.schedBad = false
+                    Keys.onReturnPressed: root.addTodo()
+                    Keys.onEnterPressed: root.addTodo()
+
+                    ShellText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "DD-MM-YY"
+                        visible: !parent.text
+                        color: Theme.mutedDark
+                        font.pixelSize: 12
+                    }
+                }
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: schedInput.activeFocus ? 2 : 1
+                    color: root.schedBad ? Theme.red : (schedInput.activeFocus ? Theme.primary : Theme.bg3)
+                }
+            }
+
         }
 
         Row {
             id: viewTabs
 
             width: parent.width
-            height: 25
-            spacing: 18
+            height: 32
+            spacing: 22
 
             Repeater {
                 model: [
@@ -327,11 +443,71 @@ FocusScope {
             }
         }
 
+        Item {
+            width: parent.width
+            height: 26
+
+            TextInput {
+                id: searchInput
+
+                anchors.left: parent.left
+                anchors.right: sortLabel.left
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                color: Theme.foreground
+                selectionColor: Theme.primaryContainer
+                selectedTextColor: Theme.foreground
+                font.family: Theme.fontFamily
+                font.pixelSize: 13
+                clip: true
+                onTextChanged: root.searchQuery = text
+                Keys.onDownPressed: root.moveSelection(1)
+                Keys.onEscapePressed: (event) => {
+                    clear();
+                    root.forceActiveFocus(Qt.OtherFocusReason);
+                    event.accepted = true;
+                }
+
+                ShellText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Search…"
+                    color: Theme.mutedDark
+                    visible: !parent.text
+                    font.pixelSize: 12
+                }
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: searchInput.right
+                anchors.bottom: parent.bottom
+                height: searchInput.activeFocus ? 2 : 1
+                color: searchInput.activeFocus ? Theme.primary : Theme.bg3
+            }
+
+            ShellText {
+                id: sortLabel
+
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Sort: " + (root.sortMode === "due" ? "due date" : root.sortMode === "priority" ? "priority" : "manual")
+                color: root.sortMode === "manual" ? Theme.muted : Theme.primary
+                font.pixelSize: 12
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -5
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.cycleSort()
+                }
+            }
+        }
+
         ListView {
             id: taskList
 
             width: parent.width
-            height: count > 0 ? Math.min(6, count) * 38 : 42
+            height: count > 0 ? Math.min(6, count) * 46 : 64
             clip: true
             interactive: count > 6
             boundsBehavior: Flickable.StopAtBounds
@@ -368,7 +544,7 @@ FocusScope {
                 }
 
                 width: ListView.view.width
-                height: 38
+                height: 46
                 activeFocusOnTab: true
 
                 Keys.onReturnPressed: root.showDetails(task.id)
@@ -406,11 +582,11 @@ FocusScope {
                     id: checkbox
 
                     anchors.left: parent.left
-                    anchors.leftMargin: 8
+                    anchors.leftMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 15
-                    height: 15
-                    radius: 4
+                    width: 18
+                    height: 18
+                    radius: 5
                     color: taskRow.task.done ? Theme.primary : "transparent"
                     border.width: 1
                     border.color: taskRow.task.done ? Theme.primary : Theme.mutedDark
@@ -438,7 +614,7 @@ FocusScope {
                     id: editInput
 
                     anchors.left: priorityDot.right
-                    anchors.leftMargin: 7
+                    anchors.leftMargin: 12
                     anchors.right: metadata.left
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
@@ -460,7 +636,7 @@ FocusScope {
 
                 ShellText {
                     anchors.left: priorityDot.right
-                    anchors.leftMargin: 7
+                    anchors.leftMargin: 12
                     anchors.right: metadata.left
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
@@ -476,7 +652,7 @@ FocusScope {
                     id: priorityDot
 
                     anchors.left: checkbox.right
-                    anchors.leftMargin: 8
+                    anchors.leftMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
                     width: 5
                     height: 5
@@ -488,9 +664,9 @@ FocusScope {
                     id: metadata
 
                     anchors.right: detailsButton.left
-                    anchors.rightMargin: 7
+                    anchors.rightMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 7
+                    spacing: 10
 
                     ShellText {
                         visible: !!taskRow.task.category
@@ -511,7 +687,7 @@ FocusScope {
                     id: detailsButton
 
                     anchors.right: parent.right
-                    width: 20
+                    width: 26
                     height: parent.height
 
                     ShellText {
@@ -538,12 +714,12 @@ FocusScope {
             id: detailsPane
 
             width: parent.width
-            spacing: 7
+            spacing: 12
             visible: root.detailsTask !== null
 
             Row {
                 width: parent.width
-                height: 25
+                height: 30
                 spacing: 8
 
                 ShellText {
@@ -590,7 +766,7 @@ FocusScope {
 
             Row {
                 width: parent.width
-                height: 30
+                height: 36
                 spacing: 12
 
                 FocusScope {
@@ -673,8 +849,8 @@ FocusScope {
 
             Row {
                 width: parent.width
-                height: 30
-                spacing: 7
+                height: 36
+                spacing: 10
 
                 Repeater {
                     model: [
@@ -729,11 +905,53 @@ FocusScope {
                         font.pixelSize: 12
                     }
                 }
+
+                ShellText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "‹"
+                    color: Theme.muted
+                    font.pixelSize: 17
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.shiftDate(-1)
+                    }
+                }
+
+                ShellText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "›"
+                    color: Theme.muted
+                    font.pixelSize: 17
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.shiftDate(1)
+                    }
+                }
+
+                ShellText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "+7d"
+                    color: Theme.muted
+                    font.pixelSize: 12
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.shiftDate(7)
+                    }
+                }
             }
 
             Item {
                 width: parent.width
-                height: 58
+                height: 84
 
                 ShellText {
                     anchors.left: parent.left
@@ -770,21 +988,55 @@ FocusScope {
 
         Item {
             width: parent.width
-            height: 16
-            visible: root.detailsTask === null && ShellState.todos.some((task) => task.done)
+            height: 24
+            visible: root.detailsTask === null && ShellState.todos.length > 0
+
+            ShellText {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.confirmClearAll ? "Click again to clear everything" : "Clear all"
+                color: root.confirmClearAll ? Theme.red : Theme.mutedDark
+                font.pixelSize: 11
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (root.confirmClearAll) {
+                            ShellState.saveTodos([]);
+                            root.confirmClearAll = false;
+                            root.detailsId = "";
+                            root.editingId = "";
+                        } else {
+                            root.confirmClearAll = true;
+                            confirmTimer.restart();
+                        }
+                    }
+                }
+            }
 
             ShellText {
                 anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                visible: ShellState.todos.some((task) => task.done)
                 text: "Clear completed"
                 color: Theme.mutedDark
                 font.pixelSize: 11
 
                 MouseArea {
                     anchors.fill: parent
-                    anchors.margins: -5
+                    anchors.margins: -6
                     cursorShape: Qt.PointingHandCursor
                     onClicked: ShellState.clearCompletedTodos()
                 }
+            }
+
+            Timer {
+                id: confirmTimer
+
+                interval: 3000
+                onTriggered: root.confirmClearAll = false
             }
         }
     }
