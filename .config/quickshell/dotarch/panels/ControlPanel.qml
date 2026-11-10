@@ -362,10 +362,6 @@ FocusScope {
     }
 
     PwObjectTracker {
-        objects: root.sink ? [root.sink] : []
-    }
-
-    PwObjectTracker {
         objects: root.audioSources
     }
 
