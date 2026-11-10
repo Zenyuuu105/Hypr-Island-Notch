@@ -10,7 +10,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs --no-duplicate --path " .. os.getenv("HOME") .. "/.config/quickshell/dotarch")
     hl.exec_cmd("sleep 1; ~/.config/quickshell/dotarch/scripts/theme-system.sh restore-wallpaper")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("easyeffects --gapplication-service")
+--     hl.exec_cmd("easyeffects --gapplication-service")
     
     -- Bluetooth applet for Quickshell notch
     hl.exec_cmd("blueman-applet")
