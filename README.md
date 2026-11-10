@@ -8,7 +8,7 @@ My Arch Linux / CachyOS desktop setup.
 - Quickshell Dotarch with animated notch
 - Dynamic themes with Matugen
 - Kitty, Fish and Starship
-- PipeWire and EasyEffects
+- PipeWire 
 - Clipboard history, screenshots and recording
 - GTK and Qt theming
 - Wallpaper collection with theme-specific folders
@@ -35,6 +35,8 @@ https://github.com/user-attachments/assets/cad2262d-0c4e-4add-8171-a6d59314a5a9
 | `Super + V` | Open clipboard history |
 | `Super + Space` | Open Control Center |
 | `Super + I` | Open Settings |
+| `Super + Shift + C` | Open Todo list |
+| `Super + Shift + N` | Open Quick Notes |
   
 ## Installation
 
