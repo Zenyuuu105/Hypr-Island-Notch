@@ -75,3 +75,4 @@ python-pipx
 htop
 nvtop
 xsettingsd
+gtk3
