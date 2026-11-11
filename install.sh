@@ -282,6 +282,19 @@ else
 fi
 
 # --------------------------------------------------
+# Spicetify (only if Spotify and spicetify are installed)
+# --------------------------------------------------
+
+if command -v spicetify >/dev/null 2>&1 \
+    && { command -v spotify-launcher >/dev/null 2>&1 || command -v spotify >/dev/null 2>&1; }; then
+    say "Applying Spicetify"
+    run spicetify backup apply \
+        || warn "Spicetify failed. Open Spotify once, then run: spicetify backup apply"
+else
+    warn "Spicetify or Spotify not installed, skipping. Run ./install.sh --optional --packages-only, open Spotify once, then: spicetify backup apply"
+fi
+
+# --------------------------------------------------
 # External monitor brightness (ddcutil needs i2c)
 # --------------------------------------------------
 
@@ -358,6 +371,7 @@ echo "Next steps:"
 echo "  1. Reboot or log out and start a Hyprland UWSM session."
 echo "  2. If Dotarch does not appear, run: qs --no-duplicate --path ~/.config/quickshell/dotarch"
 echo "  3. Optional applications can be installed with: ./install.sh --optional --packages-only"
+echo "  4. After installing Spotify, open it once, then run: spicetify backup apply"
 
 if (( DRY )); then
     echo
