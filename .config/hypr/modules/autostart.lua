@@ -3,8 +3,6 @@ hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/lib64/qt6/qml")
 
 -- AUTOSTART
 hl.on("hyprland.start", function()
-    -- hl.exec_cmd("waybar")
-    -- hl.exec_cmd("swaync")
 
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("qs --no-duplicate --path " .. os.getenv("HOME") .. "/.config/quickshell/dotarch")
