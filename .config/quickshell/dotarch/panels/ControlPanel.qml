@@ -784,17 +784,26 @@ FocusScope {
             height: 56
             spacing: 8
 
+            // Microphone selector
             InfoTile {
                 width: parent.width - 3 * 56 - 3 * 8
                 height: 56
-                icon: "\uDB80\uDC9B"
-                title: "Peace"
-                subtitle: ShellState.peaceMode ? "On" : "Off"
-                active: ShellState.peaceMode
-                onClicked: ShellState.togglePeaceMode()
-                onIconClicked: ShellState.togglePeaceMode()
+                icon: root.source && root.source.audio && root.source.audio.muted
+                      ? "\uDB80\uDF6D" : "\uDB80\uDF6C"
+                title: "Microphone"
+                subtitle: root.source
+                          ? (root.source.description || root.source.name || "Default input")
+                          : "No input available"
+                active: !!(root.source && root.source.audio && !root.source.audio.muted)
+
+                // Tile opens the detected microphone list
+                onClicked: root.toggleSection("audio")
+
+                // Microphone icon toggles mute
+                onIconClicked: root.toggleAudio()
             }
 
+            // Night Light
             CircleButton {
                 icon: "\uDB81\uDD94"
                 active: Backend.nightLightStatus === "on"
@@ -805,12 +814,14 @@ FocusScope {
                 }
             }
 
+            // Peace moved into the old microphone button position
             CircleButton {
-                icon: root.source && root.source.audio && root.source.audio.muted ? "\uDB80\uDF6D" : "\uDB80\uDF6C"
-                active: !!(root.source && root.source.audio && !root.source.audio.muted)
-                onClicked: root.toggleAudio()
+                icon: "\uDB80\uDC9B"
+                active: ShellState.peaceMode
+                onClicked: ShellState.togglePeaceMode()
             }
 
+            // Power
             CircleButton {
                 icon: "\uDB81\uDC25"
                 active: false
@@ -1442,6 +1453,42 @@ FocusScope {
                     active: !micMuted
                     actionText: micMuted ? "Unmute" : "Mute"
                     onClicked: root.toggleAudio()
+                }
+            }
+
+            footer: Item {
+                id: micFixFooter
+
+                property bool fixing: false
+
+                width: inputAudioList.width
+                height: micFixRow.height + 6
+
+                Timer {
+                    id: micFixTimer
+
+                    interval: 15000
+                    onTriggered: micFixFooter.fixing = false
+                }
+
+                NetRow {
+                    id: micFixRow
+
+                    y: 6
+                    width: parent.width
+                    icon: "\uDB81\uDC50"
+                    title: "Fix microphone"
+                    subtitle: micFixFooter.fixing ? "Reconnecting headset…" : "Reconnect headset and switch to mic mode"
+                    active: false
+                    actionText: micFixFooter.fixing ? "Working" : "Run"
+                    onClicked: {
+                        if (micFixFooter.fixing)
+                            return;
+
+                        micFixFooter.fixing = true;
+                        micFixTimer.restart();
+                        Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/mic-fix"]);
+                    }
                 }
             }
 
