@@ -16,7 +16,7 @@ My Arch Linux / CachyOS desktop setup.
 
 ## Desktop Showcase
 
-https://github.com/user-attachments/assets/b6ef1282-6578-4b75-b1bd-ea3f72c170c4
+https://github.com/user-attachments/assets/3c4840bd-4a57-41fe-86ed-861c6ae38aa0
 
 ## Keyboard Shortcuts
 
