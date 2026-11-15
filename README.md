@@ -16,7 +16,7 @@ My Arch Linux / CachyOS desktop setup.
 
 ## Desktop Showcase
 
-https://github.com/user-attachments/assets/318d1ee8-434f-41ca-9941-da5f66b71b44
+https://github.com/user-attachments/assets/b6ef1282-6578-4b75-b1bd-ea3f72c170c4
 
 ## Keyboard Shortcuts
 
@@ -35,7 +35,8 @@ https://github.com/user-attachments/assets/318d1ee8-434f-41ca-9941-da5f66b71b44
 | `Super + E` | Open file explorer |
 | `Super + V` | Open clipboard history |
 | `Super + Space` | Open Control Center |
-| `Super + I` | Open Settings |
+| `Super + I` | Open Notch Settings |
+| `Super + O` | Open Hyprland Settings |
 | `Super + Shift + C` | Open Todo list |
 | `Super + Shift + N` | Open Quick Notes |
   
