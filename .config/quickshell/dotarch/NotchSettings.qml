@@ -23,7 +23,11 @@ Singleton {
         clock24h: false, showSeconds: false, dateFormat: "ddd, MMM d", clockSize: 16, hoverClockSize: 17,
         expandOnHover: true, hoverDelay: 0, hoverExitDelay: 250, animationsEnabled: true, animationDuration: 270,
         osdVolume: true, osdBrightness: true, osdDuration: 1500,
-        uiAccent: "#0a84ff"
+        uiAccent: "#0a84ff",
+        fontSize: 16,
+        bodyFontFamily: "Inter",
+        displayFontFamily: "Inter",
+        iconFontFamily: "JetBrainsMono Nerd Font"
     })
 
     function apply(values) { for (const k in values) adapter[k] = values[k] }
@@ -95,6 +99,10 @@ Singleton {
             property bool osdBrightness: true
             property int osdDuration: 1500
             property string uiAccent: "#0a84ff"
+            property int fontSize: 16
+            property string bodyFontFamily: "Inter"
+            property string displayFontFamily: "Inter"
+            property string iconFontFamily: "JetBrainsMono Nerd Font"
         }
     }
 }

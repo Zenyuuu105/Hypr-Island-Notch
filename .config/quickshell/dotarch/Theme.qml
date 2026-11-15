@@ -43,8 +43,9 @@ Singleton {
     readonly property color purple: palette.purple
     readonly property color shellBackground: isLight ? palette.bg0 : "#000000"
     readonly property color shellForeground: isLight ? palette.foreground : "#ffffff"
-    readonly property string fontFamily: "Inter"
-    readonly property string iconFontFamily: "JetBrainsMono Nerd Font"
+    readonly property string fontFamily: NotchSettings.cfg.bodyFontFamily || "Inter"
+    readonly property string displayFontFamily: NotchSettings.cfg.displayFontFamily || "Inter"
+    readonly property string iconFontFamily: NotchSettings.cfg.iconFontFamily || "JetBrainsMono Nerd Font"
     readonly property int radiusSmall: 10
     readonly property int radius: 15
     readonly property int animationFast: 140

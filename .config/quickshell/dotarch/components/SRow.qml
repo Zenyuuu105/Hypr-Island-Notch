@@ -1,5 +1,6 @@
 import ".."
 import QtQuick
+import QtQuick.Controls
 
 Item {
     id: root
@@ -34,6 +35,7 @@ Item {
         case "slider": return 290
         case "stepper": return 120
         case "choice": return seg.width
+        case "font": return 246
         case "swatch": return swatchRow.width
         case "button": return btn.width
         default: return 160
@@ -220,6 +222,201 @@ Item {
                 border.width: root.value === modelData ? 2 : 0
                 border.color: "white"
                 MouseArea { anchors.fill: parent; onClicked: root.edited(modelData) }
+            }
+        }
+    }
+
+
+    // ---- stable searchable font dropdown ----
+    ComboBox {
+        id: fontCombo
+
+        visible: root.type === "font"
+        width: 230
+        height: 34
+
+        anchors.right: parent.right
+        anchors.rightMargin: 16
+        anchors.verticalCenter: parent.verticalCenter
+
+        model: root.options
+        currentIndex: Math.max(0, root.options.indexOf(root.value))
+        displayText: root.value || "Select font"
+
+        contentItem: Text {
+            text: fontCombo.displayText
+            color: root.textColor
+            font.family: Theme.fontFamily
+            font.pixelSize: 12
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+            leftPadding: 10
+            rightPadding: 26
+        }
+
+        background: Rectangle {
+            radius: 7
+            color: Theme.bg2
+            border.width: 1
+            border.color: fontCombo.activeFocus
+                ? Theme.primary
+                : Theme.cardBorder
+        }
+
+        delegate: ItemDelegate {
+            width: fontCombo.width
+            highlighted: fontCombo.highlightedIndex === index
+
+            contentItem: Text {
+                text: modelData
+                color: Theme.foreground
+                font.family: Theme.fontFamily
+                font.pixelSize: 12
+                elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                radius: 5
+                color: parent.highlighted
+                    ? Qt.rgba(
+                        Theme.primary.r,
+                        Theme.primary.g,
+                        Theme.primary.b,
+                        0.2
+                    )
+                    : "transparent"
+            }
+
+            onClicked: {
+                root.edited(modelData)
+                fontCombo.popup.close()
+            }
+        }
+
+        popup: Popup {
+            id: fontPopup
+
+            y: fontCombo.height + 4
+            width: fontCombo.width
+            padding: 6
+
+            implicitHeight: Math.min(
+                fontSearch.height + fontListArea.height + 12,
+                250
+            )
+
+            onOpened: {
+                fontSearch.text = ""
+                fontSearch.forceActiveFocus()
+            }
+
+            contentItem: Column {
+                spacing: 6
+
+                TextField {
+                    id: fontSearch
+
+                    width: parent.width
+                    height: 34
+
+                    placeholderText: "Search installed fonts..."
+                    placeholderTextColor: Theme.muted
+                    color: Theme.foreground
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 12
+                    selectByMouse: true
+
+                    background: Rectangle {
+                        radius: 6
+                        color: Theme.bg2
+                        border.width: 1
+                        border.color: fontSearch.activeFocus
+                            ? Theme.primary
+                            : Theme.cardBorder
+                    }
+                }
+
+                Item {
+                    id: fontListArea
+
+                    width: parent.width
+                    height: Math.min(
+                        Math.max(fontList.contentHeight, 42),
+                        190
+                    )
+
+                    ListView {
+                        id: fontList
+
+                        anchors.fill: parent
+                        clip: true
+                        spacing: 2
+
+                        model: {
+                            const query = fontSearch.text
+                                .trim()
+                                .toLowerCase()
+
+                            if (query.length === 0)
+                                return root.options
+
+                            return root.options.filter(function(name) {
+                                return String(name)
+                                    .toLowerCase()
+                                    .indexOf(query) !== -1
+                            })
+                        }
+
+                        delegate: ItemDelegate {
+                            required property var modelData
+
+                            width: fontList.width
+                            height: 32
+
+                            contentItem: Text {
+                                text: modelData
+                                color: Theme.foreground
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 12
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            background: Rectangle {
+                                radius: 5
+                                color: parent.highlighted
+                                    ? Qt.rgba(
+                                        Theme.primary.r,
+                                        Theme.primary.g,
+                                        Theme.primary.b,
+                                        0.2
+                                    )
+                                    : "transparent"
+                            }
+
+                            onClicked: {
+                                root.edited(modelData)
+                                fontCombo.popup.close()
+                            }
+                        }
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        visible: fontList.count === 0
+                        text: "No matching fonts"
+                        color: Theme.muted
+                        font.pixelSize: 12
+                    }
+                }
+            }
+
+            background: Rectangle {
+                color: Theme.bg1
+                radius: 9
+                border.width: 1
+                border.color: Theme.cardBorder
             }
         }
     }

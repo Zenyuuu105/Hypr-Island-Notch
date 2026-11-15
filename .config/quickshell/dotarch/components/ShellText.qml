@@ -4,6 +4,6 @@ import qs
 Text {
     color: Theme.foreground
     font.family: Theme.fontFamily
-    font.pixelSize: 16
+    font.pixelSize: NotchSettings.cfg.fontSize
     renderType: Text.NativeRendering
 }

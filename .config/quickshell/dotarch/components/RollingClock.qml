@@ -8,7 +8,7 @@ Row {
     property string timeText: ""
     property color textColor: Theme.shellForeground
     property int textSize: 16
-    property string clockFont: Theme.fontFamily
+    property string clockFont: Theme.displayFontFamily
 
     spacing: 0
     height: textSize * 1.35

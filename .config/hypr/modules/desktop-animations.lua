@@ -1,0 +1,20 @@
+-- Managed by Dotarch Desktop Settings.
+-- Animation settings are generated automatically.
+
+hl.animation({ leaf = "global", enabled = true, speed = 10.0, bezier = "default" })
+hl.animation({ leaf = "border", enabled = true, speed = 5.4, bezier = "easeOutQuint" })
+hl.animation({ leaf = "windows", enabled = true, speed = 4.8, spring = "easy" })
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 4.1, spring = "easy", style = "popin 87%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.5, bezier = "linear", style = "popin 87%" })
+hl.animation({ leaf = "fadeIn", enabled = true, speed = 1.7, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeOut", enabled = true, speed = 1.5, bezier = "almostLinear" })
+hl.animation({ leaf = "fade", enabled = true, speed = 3.0, bezier = "quick" })
+hl.animation({ leaf = "layers", enabled = true, speed = 3.8, bezier = "easeOutQuint" })
+hl.animation({ leaf = "layersIn", enabled = true, speed = 4.0, bezier = "easeOutQuint", style = "fade" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 1.5, bezier = "linear", style = "fade" })
+hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 1.8, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.4, bezier = "almostLinear" })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 4.0, bezier = "easeInOutCubic", style = "slide" })
+hl.animation({ leaf = "workspacesIn", enabled = true, speed = 4.0, bezier = "easeInOutCubic", style = "slide" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 4.0, bezier = "easeInOutCubic", style = "slide" })
+hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7.0, bezier = "quick" })

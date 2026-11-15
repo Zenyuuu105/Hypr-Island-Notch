@@ -58,23 +58,24 @@ FocusScope {
     // Force strict dimensions for a horizontal rectangle shape
     width: 560 
     implicitWidth: 560
-    implicitHeight: content.implicitHeight + 24
+    readonly property int pad: 12
+    implicitHeight: content.implicitHeight + 2 * pad
 
     Column {
         id: content
-        y: 12
-        width: parent.width
+        x: root.pad
+        y: root.pad
+        width: parent.width - 2 * root.pad
         spacing: 6
 
         // Search Bar 
         Item {
             width: parent.width
-            height: 48
+            height: 44
 
             ShellText {
                 id: searchIcon
-                anchors.left: parent.left
-                anchors.leftMargin: 16
+                x: 24 - width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 text: ""
                 color: Theme.muted
@@ -83,10 +84,10 @@ FocusScope {
 
             TextInput {
                 id: searchInput
-                anchors.left: searchIcon.right
-                anchors.leftMargin: 12
+                anchors.left: parent.left
+                anchors.leftMargin: 46
                 anchors.right: parent.right
-                anchors.rightMargin: 16
+                anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
                 color: Theme.foreground
                 font.family: Theme.fontFamily
@@ -116,8 +117,6 @@ FocusScope {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
                 height: 1
                 color: Theme.bg1 
             }
@@ -125,8 +124,7 @@ FocusScope {
 
         // Calculator Result Area
         Rectangle {
-            width: parent.width - 24
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
             height: root.hasAnswer ? 64 : 0
             radius: Theme.radiusSmall
             color: Theme.primaryContainer
@@ -162,7 +160,7 @@ FocusScope {
             id: results
             width: parent.width
             // Max 4 items visible so the launcher stays horizontal rather than long/vertical
-            height: Math.min(4, count) * 58
+            height: Math.min(4, count) * 58 + Math.max(0, Math.min(4, count) - 1) * 2
             spacing: 2
             clip: true
             interactive: contentHeight > height
@@ -200,8 +198,8 @@ FocusScope {
                 Rectangle {
                     id: highlightBox
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
+                    anchors.leftMargin: 0
+                    anchors.rightMargin: 0
                     anchors.topMargin: 1
                     anchors.bottomMargin: 1
                     radius: 12

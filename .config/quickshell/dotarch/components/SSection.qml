@@ -12,6 +12,7 @@ ColumnLayout {
     Text {
         visible: root.title !== ""
         text: root.title.toUpperCase()
+        font.family: Theme.displayFontFamily
         color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.9)
         font.pixelSize: 11
         font.weight: Font.DemiBold

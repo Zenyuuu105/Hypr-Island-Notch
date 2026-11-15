@@ -131,6 +131,21 @@ PanelWindow {
     onTargetVisualHeightChanged: { if (ShellState.expanded) { openH = targetVisualHeight; updateLock() } }
     onTargetVisualWidthChanged: { if (ShellState.expanded) { openW = targetVisualWidth; updateLock() } }
     property bool closing: false
+    property real settle: 1
+    function stag(d) { return Math.max(0, (settle - d) / (1 - d)) }
+    readonly property bool settleTrigger: closing && remainMax < 0.5
+    onClosingChanged: { if (closing) settle = 0; else if (!settleAnim.running) settle = 1 }
+    onSettleTriggerChanged: { if (settleTrigger) settleAnim.restart() }
+    NumberAnimation {
+        id: settleAnim
+        target: window
+        property: "settle"
+        from: 0
+        to: 1
+        duration: 520
+        easing.type: Easing.OutBack
+        easing.overshoot: 1.1
+    }
     property bool hoverBlock: false
     Timer { id: hoverBlockTimer; interval: 420; onTriggered: window.hoverBlock = false }
     Timer { id: closeEndTimer; interval: 700; onTriggered: window.closing = false }
@@ -182,7 +197,7 @@ PanelWindow {
 
     function updateLock() {
         if (!ShellState.expanded) return;
-        lockW = baseWidth - 2 * ((displayedPanel === "theme" || displayedPanel === "wallpaper") ? 0 : contentPadding);
+        lockW = baseWidth - 2 * ((displayedPanel === "theme" || displayedPanel === "wallpaper" || displayedPanel === "launcher") ? 0 : contentPadding);
         lockH = targetVisualHeight - displayedTopPadding - displayedBottomPadding;
     }
     onDisplayedPanelChanged: updateLock()
@@ -338,14 +353,7 @@ PanelWindow {
             bottomLeftRadius: window.bodyBottomRadius
             bottomRightRadius: window.bodyBottomRadius
             color: Theme.shellBackground
-            layer.enabled: !window.attached
-            layer.effect: MultiEffect {
-                shadowEnabled: true
-                shadowColor: "#000000"
-                shadowOpacity: 0.5
-                shadowBlur: 1.0
-                shadowVerticalOffset: 5
-            }
+            layer.enabled: false
         }
 
         Shape {
@@ -474,17 +482,19 @@ PanelWindow {
 
 
             anchors.horizontalCenter: notchBody.horizontalCenter
-            anchors.verticalCenter: notchBody.verticalCenter
+            anchors.top: parent.top
             width: window.restWidth - 52
             height: window.collapsedHeight
             visible: opacity > 0
-            opacity: window.clockRevealed && !ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive ? window.pillIn : 0
+            opacity: window.clockRevealed && !ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive ? 1 : 0
 
             WorkspaceDots {
                 id: restDots
                 visible: NotchSettings.cfg.showWorkspaces
-                opacity: visible ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 120 } }
+                opacity: visible ? Math.min(1, window.stag(0)) : 0
+                Behavior on opacity { enabled: window.settle >= 1; NumberAnimation { duration: 120 } }
+                scale: 0.82 + 0.18 * window.stag(0)
+                transform: Translate { x: (1 - window.stag(0)) * 8; y: (1 - window.stag(0)) * 4 }
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -492,8 +502,10 @@ PanelWindow {
             RollingClock {
                 id: restClock
                 visible: NotchSettings.cfg.showClock
-                opacity: visible ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 120 } }
+                opacity: visible ? Math.min(1, window.stag(0.12)) : 0
+                Behavior on opacity { enabled: window.settle >= 1; NumberAnimation { duration: 120 } }
+                scale: 0.82 + 0.18 * window.stag(0.12)
+                transform: Translate { y: (1 - window.stag(0.12)) * 5 }
                 x: window.restClockX
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on x {
@@ -506,6 +518,9 @@ PanelWindow {
 
             Row {
                 id: restStatus
+                opacity: Math.min(1, window.stag(0.24))
+                scale: 0.82 + 0.18 * window.stag(0.24)
+                transform: Translate { x: -(1 - window.stag(0.24)) * 8; y: (1 - window.stag(0.24)) * 4 }
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 5
@@ -598,6 +613,7 @@ PanelWindow {
                     visible: NotchSettings.cfg.showHoverClock
                     anchors.bottom: parent.bottom
                     text: Qt.formatDateTime(clock.date, window.clockFormat)
+                    font.family: Theme.displayFontFamily
                     color: Theme.shellForeground
                     font.pixelSize: 17
                     font.weight: Font.Bold
@@ -622,6 +638,7 @@ PanelWindow {
             // ---------- second row ----------
             Item {
                 id: columns
+                readonly property real sideW: Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth)
 
                 anchors.left: parent.left
                 anchors.right: parent.right
@@ -633,6 +650,7 @@ PanelWindow {
                 // left: "- Desktop" + workspace dots
                 Column {
                     id: leftGroup
+                    width: columns.sideW
 
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -672,7 +690,7 @@ PanelWindow {
                     visible: NotchSettings.cfg.showHoverMedia
 
                     anchors.centerIn: parent
-                    width: Math.max(150, parent.width - 2 * (Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth) + 14))
+                    width: Math.max(150, parent.width - 2 * (columns.sideW + 14))
                     height: 40
                     radius: 16
                     color: Qt.rgba(1, 1, 1, 0.04)
@@ -824,6 +842,7 @@ PanelWindow {
                 // right: "All caught up" + bell, wifi + battery under
                 Column {
                     id: rightGroup
+                    width: columns.sideW
 
                     readonly property int notifCount: ShellState.notificationModel ? ShellState.notificationModel.values.length : 0
 
@@ -832,7 +851,7 @@ PanelWindow {
                     spacing: 6
 
                     Row {
-                        anchors.right: parent.right
+                        anchors.horizontalCenter: parent.horizontalCenter
                         spacing: 6
 
                         ShellText {
@@ -1304,20 +1323,26 @@ PanelWindow {
             onClicked: ShellState.show("control")
         }
 
-        Item {
+        ClippingRectangle {
             id: panelHost
+
+            // rounded clip, concentric with the shell, so the content's corners follow it
+            color: "transparent"
+            topLeftRadius: window.attached ? 0 : Math.max(0, window.bodyBottomRadius - window.displayedTopPadding)
+            topRightRadius: window.attached ? 0 : Math.max(0, window.bodyBottomRadius - window.displayedTopPadding)
+            bottomLeftRadius: Math.max(0, window.bodyBottomRadius - window.displayedBottomPadding)
+            bottomRightRadius: Math.max(0, window.bodyBottomRadius - window.displayedBottomPadding)
 
             anchors.left: notchBody.left
             anchors.right: notchBody.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            anchors.leftMargin: (window.displayedPanel === "theme" || window.displayedPanel === "wallpaper") ? 0 : window.contentPadding
-            anchors.rightMargin: (window.displayedPanel === "theme" || window.displayedPanel === "wallpaper") ? 0 : window.contentPadding
+            anchors.leftMargin: (window.displayedPanel === "theme" || window.displayedPanel === "wallpaper" || window.displayedPanel === "launcher") ? 0 : window.contentPadding
+            anchors.rightMargin: (window.displayedPanel === "theme" || window.displayedPanel === "wallpaper" || window.displayedPanel === "launcher") ? 0 : window.contentPadding
             anchors.topMargin: window.displayedTopPadding
             anchors.bottomMargin: window.displayedBottomPadding
             visible: opacity > 0
             opacity: window.contentRevealed ? window.openFade : (ShellState.expanded ? 0 : window.closeFade)
-            clip: true
 
             Item {
                 id: panelContent

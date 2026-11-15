@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Widgets
 import qs
 import qs.components
@@ -7,46 +8,53 @@ import ".."
 FocusScope {
     id: root
 
-    // Keep this equal to ui in ThemePanel.qml so both panels are the same size
-    readonly property real ui: 1.2
+    // One knob for the whole panel. 1.0 = size measured from the recording (705 x 189).
+    readonly property real ui: 1.0
+    // Tile size multiplier: grows tiles and panel height, keeps the width
+    readonly property real tileK: 1.25
+    readonly property real extra: Math.round((tileK - 1) * 120 * ui)
 
     readonly property string query: searchInput.text.trim().toLowerCase()
     readonly property var items: AppearanceState.wallpapers.filter(item => query === "" || root.fileLabel(item.path).toLowerCase().indexOf(query) >= 0)
-    readonly property var selected: root.items.length > 0 && root.currentIndex < root.items.length ? root.items[root.currentIndex] : null
-
-    readonly property real cardWidth: 133 * ui
-    readonly property real cardHeight: 69 * ui
-    readonly property real pitch: 138.5 * ui
-    readonly property int applyDelay: 430
-    // Only this many cards on each side of the selection load their image
-    readonly property int loadRadius: 5
 
     property int currentIndex: 0
     property real wheelAccum: 0
-    property bool applying: false
+    property bool autoClose: false
+    readonly property int applyDelay: 430
 
-    function fileLabel(path) {
-        return String(path).split("/").pop().replace(/\.[^.]+$/, "");
+    // Fractional selected index, one critically damped spring (~270ms settle, no bounce)
+    readonly property real sel: selSpring.value
+
+    // Tile curves, indexed by distance from the selection (measured, ui = 1)
+    readonly property var wTab: [158, 109, 96, 88, 80]
+    readonly property var offTab: [0, 145, 254, 353, 443]
+    readonly property var aTab: [1, 0.9, 0.55, 0.22, 0]
+
+    function px(v) { return Math.round(v * ui); }
+
+    function curve(arr, d) {
+        const i = Math.max(0, Math.min(arr.length - 2, Math.floor(d)));
+        const f = Math.max(0, Math.min(1, d - i));
+        return arr[i] + (arr[i + 1] - arr[i]) * f;
     }
 
-    function selectCurrent() {
-        const list = root.items;
-        if (list.length === 0) {
-            root.currentIndex = 0;
-            return;
-        }
-        const path = AppearanceState.currentWallpaper;
-        let index = list.findIndex(item => item.path === path);
-        if (index < 0 && path)
-            index = list.findIndex(item => item.name === path.split("/").pop());
-        root.currentIndex = Math.max(0, index);
-        scroll.snap(root.currentIndex * root.pitch);
+    function fileLabel(path) {
+        const p = String(path || "");
+        return p.substring(p.lastIndexOf("/") + 1);
+    }
+
+    function fileUrl(path) {
+        const p = String(path || "");
+        if (p === "")
+            return "";
+        return p.indexOf("/") === 0 ? "file://" + p : p;
     }
 
     function takeInitialFocus() {
-        applying = false;
         searchInput.clear();
-        root.selectCurrent();
+        const index = root.items.findIndex(item => item.path === AppearanceState.currentWallpaper);
+        root.currentIndex = Math.max(0, index);
+        selSpring.snap(root.currentIndex);
         searchInput.forceActiveFocus(Qt.TabFocusReason);
     }
 
@@ -57,21 +65,25 @@ FocusScope {
     }
 
     function activate(index) {
-        if (root.applying)
-            return;
         const item = root.items[index];
         if (!item)
             return;
-        root.applying = true;
         AppearanceState.setWallpaper(item.path);
-        closeTimer.restart();
+        if (root.autoClose)
+            closeTimer.restart();
     }
 
     function handleKey(event) {
-        if (event.key === Qt.Key_Left || ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_H)) {
+        const ctrl = (event.modifiers & Qt.ControlModifier);
+        const plain = searchInput.text === "";
+        const back = event.key === Qt.Key_Up || (plain && event.key === Qt.Key_Left)
+            || (ctrl && (event.key === Qt.Key_H || event.key === Qt.Key_K || event.key === Qt.Key_P));
+        const fwd = event.key === Qt.Key_Down || (plain && event.key === Qt.Key_Right)
+            || (ctrl && (event.key === Qt.Key_L || event.key === Qt.Key_J || event.key === Qt.Key_N));
+        if (back) {
             root.move(-1);
             event.accepted = true;
-        } else if (event.key === Qt.Key_Right || ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_L)) {
+        } else if (fwd) {
             root.move(1);
             event.accepted = true;
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -80,8 +92,8 @@ FocusScope {
         }
     }
 
-    implicitWidth: Math.round(572 * ui)
-    implicitHeight: Math.round(158 * ui)
+    implicitWidth: Math.round(705 * ui)
+    implicitHeight: Math.round(189 * ui) + extra
 
     Keys.onPressed: event => root.handleKey(event)
 
@@ -91,7 +103,12 @@ FocusScope {
     }
 
     // Handler, not a binding, so snap() can never break it
-    onCurrentIndexChanged: scroll.target = root.currentIndex * root.pitch
+    onCurrentIndexChanged: selSpring.target = root.currentIndex
+
+    onItemsChanged: {
+        if (root.currentIndex > root.items.length - 1)
+            root.currentIndex = Math.max(0, root.items.length - 1);
+    }
 
     Timer {
         id: closeTimer
@@ -110,84 +127,63 @@ FocusScope {
         }
     }
 
-    Connections {
-        target: AppearanceState
-
-        function onWallpapersChanged() {
-            if (root.query === "")
-                Qt.callLater(root.selectCurrent);
-        }
-
-        function onCurrentWallpaperChanged() {
-            if (root.query === "" && !root.applying)
-                Qt.callLater(root.selectCurrent);
-        }
-    }
-
-    // Same critically damped spring as the theme switcher
     Spring {
-        id: scroll
-        omega: 20
+        id: selSpring
+        omega: 22
         zeta: 1.0
     }
 
     Item {
         id: content
         anchors.fill: parent
-        opacity: root.applying ? 0 : 1
 
-        Behavior on opacity {
-            NumberAnimation {
-                duration: root.applying ? 200 : 140
-                easing.type: Easing.OutCubic
+        WheelHandler {
+            target: null
+            onWheel: event => {
+                root.wheelAccum += event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
+                if (Math.abs(root.wheelAccum) >= 90) {
+                    root.move(root.wheelAccum > 0 ? -1 : 1);
+                    root.wheelAccum = 0;
+                }
+                event.accepted = true;
             }
-        }
-
-        // Search pill
-        Rectangle {
-            x: 6 * root.ui
-            y: 4 * root.ui
-            width: parent.width - 12 * root.ui
-            height: 32 * root.ui
-            radius: 10 * root.ui
-            color: "transparent"
-            border.width: 1
-            border.color: Qt.alpha(Theme.shellForeground, 0.07)
         }
 
         // Search row
         Item {
             id: searchRow
-            x: 16 * root.ui
-            y: 6 * root.ui
-            width: parent.width - 32 * root.ui
-            height: 28 * root.ui
+            x: root.px(12)
+            y: root.px(8)
+            width: parent.width - 2 * root.px(12)
+            height: root.px(24)
 
             ShellText {
                 id: searchIcon
-                anchors.left: parent.left
-                anchors.leftMargin: 2 * root.ui
+                x: root.px(8) - width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 text: "\uDB80\uDF49"
                 font.family: Theme.iconFontFamily
-                font.pixelSize: Math.round(13 * root.ui)
-                color: Theme.mutedDark
+                font.pixelSize: Math.round(15 * root.ui)
+                color: Qt.alpha(Theme.shellForeground, 0.6)
             }
 
             TextInput {
                 id: searchInput
-                anchors.left: searchIcon.right
-                anchors.leftMargin: 8 * root.ui
-                anchors.right: folderIcon.left
-                anchors.rightMargin: 12 * root.ui
+                anchors.left: parent.left
+                anchors.leftMargin: root.px(26)
+                anchors.right: folderLabel.left
+                anchors.rightMargin: root.px(12)
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 color: Theme.foreground
                 font.family: Theme.fontFamily
-                font.pixelSize: Math.round(13 * root.ui)
+                font.pixelSize: Math.round(13.5 * root.ui)
                 verticalAlignment: TextInput.AlignVCenter
                 clip: true
-                onTextChanged: root.currentIndex = 0
+                onTextChanged: {
+                    root.currentIndex = 0;
+                    selSpring.snap(0);
+                }
 
                 Keys.onPressed: event => root.handleKey(event)
 
@@ -195,222 +191,144 @@ FocusScope {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: !parent.text
                     text: "Search wallpapers..."
-                    color: Theme.mutedDark
-                    font.pixelSize: Math.round(13 * root.ui)
+                    color: Qt.alpha(Theme.shellForeground, 0.4)
+                    font.pixelSize: Math.round(13.5 * root.ui)
                 }
             }
 
-            // Opens the wallpaper folder (kept from the old panel)
+            // Theme folder name; click opens the wallpaper folder
             ShellText {
-                id: folderIcon
-                anchors.right: counter.left
-                anchors.rightMargin: 12 * root.ui
+                id: folderLabel
+                anchors.right: parent.right
+                anchors.rightMargin: root.px(3)
                 anchors.verticalCenter: parent.verticalCenter
-                text: "\uDB80\uDE4B"
-                font.family: Theme.iconFontFamily
-                font.pixelSize: Math.round(13 * root.ui)
-                color: folderPointer.containsMouse ? Theme.foreground : Theme.mutedDark
+                text: Theme.slug
+                color: Qt.alpha(Theme.shellForeground, folderMouse.containsMouse ? 0.7 : 0.45)
+                font.pixelSize: Math.round(11 * root.ui)
 
                 MouseArea {
-                    id: folderPointer
+                    id: folderMouse
                     anchors.fill: parent
-                    anchors.margins: -6
+                    anchors.margins: -4
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: AppearanceState.openWallpaperFolder()
                 }
             }
-
-            ShellText {
-                id: counter
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.items.length === 0 ? "0/0" : (root.currentIndex + 1) + "/" + root.items.length
-                color: Theme.mutedDark
-                font.pixelSize: Math.round(11 * root.ui)
-            }
         }
 
-        // Carousel, hard-clipped 10px (times ui) in from each side
+        // Divider
+        Rectangle {
+            x: root.px(12)
+            y: root.px(40)
+            width: parent.width - 2 * root.px(12)
+            height: 1
+            color: Qt.alpha(Theme.shellForeground, 0.08)
+        }
+
+        // Carousel track: clipped to the panel margins so far tiles are cut off
         Item {
-            id: carousel
-            x: 10 * root.ui
-            y: 42 * root.ui
-            width: parent.width - 20 * root.ui
-            height: root.cardHeight + 16 * root.ui
+            id: track
+            x: root.px(12)
+            y: root.px(41)
+            width: parent.width - 2 * root.px(12)
+            height: root.px(120) + root.extra
             clip: true
 
-            WheelHandler {
-                target: null
-                onWheel: event => {
-                    root.wheelAccum += event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
-                    if (Math.abs(root.wheelAccum) >= 90) {
-                        root.move(root.wheelAccum > 0 ? -1 : 1);
-                        root.wheelAccum = 0;
-                    }
-                    event.accepted = true;
-                }
-            }
+            Repeater {
+                model: root.items
 
-            Item {
-                id: strip
-                x: (carousel.width - root.cardWidth) / 2 - scroll.value
-                width: Math.max(1, root.items.length) * root.pitch
-                height: carousel.height
+                delegate: Item {
+                    id: tile
 
-                Repeater {
-                    model: root.items
+                    required property int index
+                    required property var modelData
 
-                    delegate: Item {
-                        id: card
+                    readonly property real t: index - root.sel
+                    readonly property real d: Math.abs(t)
+                    readonly property bool isCurrent: modelData.path === AppearanceState.currentWallpaper
+                    readonly property real tw: Math.round(root.curve(root.wTab, d) * root.ui * root.tileK)
+                    readonly property real th: Math.round(tw / 1.64)
+                    readonly property real off: root.curve(root.offTab, d) * root.ui * root.tileK * (t < 0 ? -1 : 1)
 
-                        required property int index
-                        required property var modelData
+                    x: Math.round(track.width / 2 + off - tw / 2)
+                    y: Math.round(track.height / 2 - th / 2)
+                    width: tw
+                    height: th
+                    opacity: root.curve(root.aTab, d)
+                    visible: d < 4.05
+                    z: -d
 
-                        readonly property bool isCurrent: modelData.path === AppearanceState.currentWallpaper
-                        // 1 when centred, 0 one pitch away: ring and dimming follow
-                        // the scroll position. No lift for wallpapers.
-                        readonly property real p: Math.max(0, Math.min(1, 1 - Math.abs(x - scroll.value) / root.pitch))
+                    ClippingRectangle {
+                        anchors.fill: parent
+                        radius: Math.round(tile.th * 0.15)
+                        color: Qt.alpha(Theme.shellForeground, 0.06)
 
-                        x: index * root.pitch
-                        width: root.cardWidth
-                        height: carousel.height
-
-                        ClippingRectangle {
-                            id: surface
-                            y: 6 * root.ui
-                            width: root.cardWidth
-                            height: root.cardHeight
-                            radius: 12 * root.ui
-                            color: Theme.bg1
-
-                            Image {
-                                anchors.fill: parent
-                                source: Math.abs(card.index - root.currentIndex) <= root.loadRadius ? encodeURI("file://" + card.modelData.path) : ""
-                                fillMode: Image.PreserveAspectCrop
-                                sourceSize.width: 400
-                                asynchronous: true
-                                cache: true
-                                mipmap: true
-                                opacity: status === Image.Ready ? 1 : 0
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 200
-                                    }
-                                }
-                            }
-
-                            // Dims unselected cards
-                            Rectangle {
-                                anchors.fill: parent
-                                color: Theme.shellBackground
-                                opacity: 0.5 * (1 - card.p)
-                            }
-
-                            // Applied marker
-                            Rectangle {
-                                visible: card.isCurrent
-                                anchors.top: parent.top
-                                anchors.right: parent.right
-                                anchors.topMargin: 5 * root.ui
-                                anchors.rightMargin: 5 * root.ui
-                                width: 6 * root.ui
-                                height: 6 * root.ui
-                                radius: width / 2
-                                color: Theme.shellForeground
-                                opacity: 0.6 + 0.4 * card.p
-                            }
-                        }
-
-                        // Selection ring crossfades between cards while scrolling
-                        Rectangle {
-                            x: surface.x
-                            y: surface.y
-                            width: surface.width
-                            height: surface.height
-                            radius: surface.radius
-                            color: "transparent"
-                            border.width: 2
-                            border.color: Theme.shellForeground
-                            opacity: card.p
-                        }
-
-                        MouseArea {
+                        Image {
                             anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (root.currentIndex === card.index)
-                                    root.activate(card.index);
-                                else
-                                    root.currentIndex = card.index;
-                            }
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            cache: true
+                            sourceSize.width: 380
+                            // only tiles near the selection decode an image
+                            source: tile.d < 4.5 ? root.fileUrl(tile.modelData.path) : ""
+                            opacity: status === Image.Ready ? 1 : 0
+                            Behavior on opacity { NumberAnimation { duration: 160 } }
+                        }
+                    }
+
+                    // Marker on the wallpaper that is currently applied
+                    Rectangle {
+                        visible: tile.isCurrent
+                        width: root.px(5)
+                        height: root.px(5)
+                        radius: width / 2
+                        x: parent.width - width - root.px(7)
+                        y: root.px(7)
+                        color: Qt.alpha(Theme.shellForeground, 0.9)
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (root.currentIndex === tile.index)
+                                root.activate(tile.index);
+                            else
+                                root.currentIndex = tile.index;
                         }
                     }
                 }
-            }
-
-            // Edge fades so cards dissolve instead of being cut off
-            Rectangle {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: 40 * root.ui
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Theme.shellBackground }
-                    GradientStop { position: 1.0; color: Qt.alpha(Theme.shellBackground, 0) }
-                }
-            }
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: 40 * root.ui
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Qt.alpha(Theme.shellBackground, 0) }
-                    GradientStop { position: 1.0; color: Theme.shellBackground }
-                }
-            }
-
-            ShellText {
-                anchors.centerIn: parent
-                width: parent.width - 40
-                visible: root.items.length === 0
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                color: Theme.mutedDark
-                font.pixelSize: Math.round(12 * root.ui)
-                text: AppearanceState.wallpapers.length === 0 ? "No wallpapers in\n~/Pictures/Wallpapers/" + Theme.slug : "No wallpapers found"
             }
         }
 
-        // Footer: file name on the left, hint on the right
+        // Footer: file name left, position right
         ShellText {
-            anchors.left: parent.left
-            anchors.leftMargin: 10 * root.ui
-            anchors.right: footerRight.left
-            anchors.rightMargin: 12 * root.ui
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 10 * root.ui
+            x: root.px(15)
+            y: root.px(173) + root.extra - height / 2
+            width: parent.width - 2 * root.px(15) - root.px(60)
             elide: Text.ElideMiddle
-            text: root.selected ? root.fileLabel(root.selected.path) : ""
-            color: Theme.mutedDark
+            text: root.items.length > 0 ? root.fileLabel(root.items[root.currentIndex].path) : ""
+            color: Qt.alpha(Theme.shellForeground, 0.5)
             font.pixelSize: Math.round(11 * root.ui)
         }
 
-        Row {
-            id: footerRight
+        ShellText {
             anchors.right: parent.right
-            anchors.rightMargin: 10 * root.ui
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 9 * root.ui
-            spacing: 14 * root.ui
+            anchors.rightMargin: root.px(15)
+            y: root.px(173) + root.extra - height / 2
+            text: root.items.length === 0 ? "0/0" : (root.currentIndex + 1) + "/" + root.items.length
+            color: Qt.alpha(Theme.shellForeground, 0.4)
+            font.pixelSize: Math.round(11 * root.ui)
+        }
 
-            KeyHint { ui: root.ui; keys: "← →"; label: "Browse" }
-            KeyHint { ui: root.ui; keys: "Enter"; label: "Apply" }
+        ShellText {
+            anchors.centerIn: track
+            visible: root.items.length === 0
+            horizontalAlignment: Text.AlignHCenter
+            text: AppearanceState.wallpapers.length === 0 ? "No wallpapers in\n~/Pictures/Wallpapers/" + Theme.slug : "No wallpapers found"
+            color: Qt.alpha(Theme.shellForeground, 0.45)
+            font.pixelSize: Math.round(13.5 * root.ui)
         }
     }
 }

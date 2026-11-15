@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
+set -Eeuo pipefail
 
-# Wait until the Wayland clipboard is available
-while ! wl-paste --type text --no-newline >/dev/null 2>&1; do
+# Wait briefly for the Wayland clipboard to become available.
+for _ in {1..10}; do
+    if wl-paste --list-types >/dev/null 2>&1; then
+        break
+    fi
     sleep 1
-    break
 done
 
-# Record copied text and images in cliphist
+# Keep text and image history in cliphist.
 wl-paste --type text --watch cliphist store &
+text_pid=$!
+
 wl-paste --type image --watch cliphist store &
+image_pid=$!
+
+cleanup() {
+    kill "$text_pid" "$image_pid" 2>/dev/null || true
+    wait "$text_pid" "$image_pid" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
 wait

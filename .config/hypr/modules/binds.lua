@@ -36,6 +36,12 @@ hl.bind(
     hl.dsp.exec_cmd("qs --path " .. dotarchPath .. " ipc call notch toggle control")
 )
 
+-- Super + O: open Desktop Settings
+hl.bind(
+    mainMod .. " + O",
+    hl.dsp.exec_cmd("qs --path " .. dotarchPath .. " ipc call desktop-settings open")
+)
+
 -- Super + V: Dotarch clipboard history
 hl.bind(
     mainMod .. " + V",
@@ -73,22 +79,25 @@ hl.bind(
 )
 
 -- CLOSE WINDOW
--- Hide Dotarch Settings; normally close every other application.
+-- Hide Dotarch settings windows; normally close every other application.
 hl.bind(mainMod .. " + Q", function()
     local win = hl.get_active_window()
 
-    if win ~= nil
-        and win.class == "org.quickshell"
-        and win.title == "Shell Settings"
-    then
-        hl.dispatch(
-            hl.dsp.exec_cmd(
+    if win ~= nil and win.class == "org.quickshell" then
+        if win.title == "Shell Settings" then
+            hl.dispatch(hl.dsp.exec_cmd(
                 "qs --path " .. dotarchPath .. " ipc call settings close"
-            )
-        )
-    else
-        hl.dispatch(hl.dsp.window.close())
+            ))
+            return
+        elseif win.title == "Desktop Settings" then
+            hl.dispatch(hl.dsp.exec_cmd(
+                "qs --path " .. dotarchPath .. " ipc call desktop-settings close"
+            ))
+            return
+        end
     end
+
+    hl.dispatch(hl.dsp.window.close())
 end)
 
 -- Open Kitty

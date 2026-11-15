@@ -11,7 +11,7 @@ Item {
     property string activeName: ""      // currently applied theme (gets the small dot)
     property bool   open: false
     property string clockText: ""
-    property string fontFamily: "Inter"
+    property string fontFamily: Theme.fontFamily
     property int    applyDelay: 430     // ms between Enter and the collapse (wallpaper crossfades ~200ms meanwhile)
     signal applied(string name)
     signal closed()

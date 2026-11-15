@@ -1,54 +1,79 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Effects
-import QtQuick.Layouts
 import Quickshell
 import "components"
+import "ui" as Ui
+import "ui/Singletons"
 
+// Shell Settings, in the Ryoku-Hub look. The page definitions, search, presets,
+// preview, fonts and NotchSettings wiring are the originals; only the rendering
+// changed (grouped rail + cards in balanced columns).
 FloatingWindow {
     id: win
     title: "Shell Settings"
     visible: false
-    color: Theme.shellBackground
-    implicitWidth: 1060
-    implicitHeight: 760
+    color: Tokens.paper
+    width: 1280
+    height: 800
+    implicitWidth: 1280
+    implicitHeight: 800
+
+    property bool sheetReady: false
+
+    onVisibleChanged: {
+        if (visible) {
+            sheetReady = false;
+            reloadTimer.restart();
+        } else {
+            sheetReady = false;
+        }
+    }
+
+    Timer {
+        id: reloadTimer
+        interval: 40
+        repeat: false
+        onTriggered: win.sheetReady = true
+    }
 
     readonly property var c: NotchSettings.cfg
     readonly property color accent: c.uiAccent.toString().toLowerCase() === "#0a84ff" ? Theme.primary : c.uiAccent
     property int page: 0
+    property int dir: 1
     property string query: ""
 
-    onPageChanged: flick.contentY = 0
-    onQueryChanged: flick.contentY = 0
-
     Shortcut { sequence: "Ctrl+W"; onActivated: win.visible = false }
+    Shortcut { sequence: "Ctrl+K"; onActivated: searchField.grabFocus() }
+    Shortcut { sequence: "Ctrl+F"; onActivated: searchField.grabFocus() }
 
     // ------------------------------------------------------------------
-    //  Settings definition (everything in the UI is generated from this)
+    //  Settings definition (the whole UI is generated from this)
     // ------------------------------------------------------------------
     readonly property var pages: [
         {
-            name: "Presets", icon: "star-four", color: Theme.orange, preview: true, resettable: false,
+            name: "Presets", group: "NOTCH", preview: true, resettable: false,
             sections: [
                 {
                     title: "Layouts",
                     footer: "A preset changes shape, size and elements together. Fine-tune anything afterwards.",
                     items: [
                         { type: "button", label: "Classic notch", hint: "Attached to the top edge with flared corners", text: "Apply", action: "preset",
-                          values: { shape: "notch", collapsedWidth: 0, collapsedHeight: 32, expandedWidth: 0, expandedHeight: 82, cornerRadius: 20, notchFlare: 16, offsetX: 0, backgroundOpacity: 100,
-                                    showWorkspaces: true, showClock: true, showDate: false, showWifi: true, showBattery: true, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
-                                    showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } },
+                         values: { shape: "notch", collapsedWidth: 0, collapsedHeight: 32, expandedWidth: 0, expandedHeight: 82, cornerRadius: 20, notchFlare: 16, offsetX: 0, backgroundOpacity: 100,
+                                   showWorkspaces: true, showClock: true, showDate: false, showWifi: true, showBattery: true, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
+                                   showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } },
                         { type: "button", label: "Dynamic Island", hint: "A floating pill with rounded corners", text: "Apply", action: "preset",
-                          values: { shape: "island", islandTopMargin: 10, collapsedWidth: 200, collapsedHeight: 36, expandedWidth: 460, expandedHeight: 96, cornerRadius: 22, offsetX: 0,
-                                    showWorkspaces: true, showClock: true, showDate: false, showWifi: true, showBattery: true, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
-                                    showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } },
+                         values: { shape: "island", islandTopMargin: 10, collapsedWidth: 200, collapsedHeight: 36, expandedWidth: 460, expandedHeight: 96, cornerRadius: 22, offsetX: 0,
+                                   showWorkspaces: true, showClock: true, showDate: false, showWifi: true, showBattery: true, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
+                                   showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } },
                         { type: "button", label: "Minimal", hint: "Small pill, just the clock", text: "Apply", action: "preset",
-                          values: { shape: "notch", collapsedWidth: 120, collapsedHeight: 28, expandedWidth: 340, expandedHeight: 70, cornerRadius: 16, notchFlare: 12,
-                                    showWorkspaces: false, showClock: true, showDate: false, showWifi: false, showBattery: false, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
-                                    showHoverWorkspaces: false, showHoverStatus: false, showHoverMedia: false } },
+                         values: { shape: "notch", collapsedWidth: 120, collapsedHeight: 28, expandedWidth: 340, expandedHeight: 70, cornerRadius: 16, notchFlare: 12,
+                                   showWorkspaces: false, showClock: true, showDate: false, showWifi: false, showBattery: false, showBluetooth: false, showVolume: false, showMedia: false, showBell: false,
+                                   showHoverWorkspaces: false, showHoverStatus: false, showHoverMedia: false } },
                         { type: "button", label: "Informative", hint: "Every element switched on", text: "Apply", action: "preset",
-                          values: { shape: "notch", collapsedWidth: 0, collapsedHeight: 34, expandedWidth: 560, expandedHeight: 96, cornerRadius: 22, notchFlare: 16,
-                                    showWorkspaces: true, showClock: true, showDate: true, showWifi: true, showBattery: true, showBluetooth: true, showVolume: true, showMedia: true, showBell: true,
-                                    showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } }
+                         values: { shape: "notch", collapsedWidth: 0, collapsedHeight: 34, expandedWidth: 560, expandedHeight: 96, cornerRadius: 22, notchFlare: 16,
+                                   showWorkspaces: true, showClock: true, showDate: true, showWifi: true, showBattery: true, showBluetooth: true, showVolume: true, showMedia: true, showBell: true,
+                                   showHoverClock: true, showHoverDate: true, showHoverWorkspaces: true, showHoverStatus: true, showHoverMedia: true } }
                     ]
                 },
                 {
@@ -61,13 +86,13 @@ FloatingWindow {
             ]
         },
         {
-            name: "Shape & Size", icon: "bounding-box", color: Theme.blue, preview: true,
+            name: "Shape & Size", group: "NOTCH", preview: true,
             sections: [
                 {
                     title: "Style",
                     items: [
                         { type: "choice", key: "shape", label: "Shape", hint: "Notch hugs the screen edge; island floats below it",
-                          options: [{ key: "notch", text: "Notch" }, { key: "island", text: "Dynamic Island" }] }
+                         options: [{ key: "notch", text: "Notch" }, { key: "island", text: "Dynamic Island" }] }
                     ]
                 },
                 {
@@ -98,7 +123,7 @@ FloatingWindow {
             ]
         },
         {
-            name: "Elements", icon: "squares-four", color: Theme.purple, preview: true,
+            name: "Elements", group: "NOTCH", preview: true,
             sections: [
                 {
                     title: "Resting pill",
@@ -128,7 +153,7 @@ FloatingWindow {
             ]
         },
         {
-            name: "Clock & Date", icon: "clock", color: Theme.green, preview: true,
+            name: "Clock & Date", group: "NOTCH", preview: true,
             sections: [
                 {
                     title: "Time",
@@ -143,28 +168,14 @@ FloatingWindow {
                     title: "Date format",
                     items: [
                         { type: "choice", key: "dateFormat", label: "Format",
-                          options: [{ key: "ddd, MMM d", text: "Fri, Oct 30" }, { key: "d MMM", text: "30 Oct" },
-                                    { key: "dddd, d MMMM", text: "Friday, 30 October" }, { key: "M/d", text: "10/30" }] }
+                         options: [{ key: "ddd, MMM d", text: "Fri, Oct 30" }, { key: "d MMM", text: "30 Oct" },
+                                   { key: "dddd, d MMMM", text: "Friday, 30 October" }, { key: "M/d", text: "10/30" }] }
                     ]
                 }
             ]
         },
         {
-            name: "Panels", icon: "layout", color: Theme.red, preview: false,
-            sections: [
-                {
-                    title: "Panel size",
-                    footer: "Applies to the control center, launcher, clipboard, wallpaper, theme and other panels. Auto keeps each panel's own size.",
-                    items: [
-                        { type: "slider", key: "panelWidth", label: "Width", min: 0, max: 800, unit: "px", zero: "Auto" },
-                        { type: "slider", key: "panelHeight", label: "Height", min: 0, max: 900, unit: "px", zero: "Auto" },
-                        { type: "slider", key: "panelRadius", label: "Corner radius", min: 0, max: 40, unit: "px" }
-                    ]
-                }
-            ]
-        },
-        {
-            name: "Animation & Hover", icon: "lightning", color: Theme.aqua, preview: true,
+            name: "Animation & Hover", group: "NOTCH", preview: true,
             sections: [
                 {
                     title: "Hover behaviour",
@@ -184,7 +195,21 @@ FloatingWindow {
             ]
         },
         {
-            name: "OSD", icon: "speaker-high", color: Theme.yellow, preview: false,
+            name: "Panels", group: "SHELL", preview: false,
+            sections: [
+                {
+                    title: "Panel size",
+                    footer: "Applies to the control center, launcher, clipboard, wallpaper, theme and other panels. Auto keeps each panel's own size.",
+                    items: [
+                        { type: "slider", key: "panelWidth", label: "Width", min: 0, max: 800, unit: "px", zero: "Auto" },
+                        { type: "slider", key: "panelHeight", label: "Height", min: 0, max: 900, unit: "px", zero: "Auto" },
+                        { type: "slider", key: "panelRadius", label: "Corner radius", min: 0, max: 40, unit: "px" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "OSD", group: "SHELL", preview: false,
             sections: [
                 {
                     title: "On-screen indicators",
@@ -198,7 +223,7 @@ FloatingWindow {
             ]
         },
         {
-            name: "Appearance", icon: "palette", color: Theme.primary, preview: true,
+            name: "Appearance", group: "SHELL", preview: true,
             sections: [
                 {
                     title: "Notch",
@@ -207,16 +232,26 @@ FloatingWindow {
                     ]
                 },
                 {
+                    title: "Typography",
+                    items: [
+                        { type: "slider", key: "fontSize", label: "Shell font size", hint: "Adjust regular text throughout the shell", min: 10, max: 24, unit: "px" },
+                        // fonts are listed from the system at runtime, so there is no hand-kept list
+                        { type: "font", key: "bodyFontFamily", label: "Body font", hint: "Regular text throughout the shell" },
+                        { type: "font", key: "displayFontFamily", label: "Display font", hint: "Clock and prominent headings" },
+                        { type: "font", key: "iconFontFamily", label: "Icon font", hint: "Icons throughout the shell", filter: "nerd" }
+                    ]
+                },
+                {
                     title: "Settings app",
                     items: [
                         { type: "swatch", key: "uiAccent", label: "Accent colour",
-                          swatches: ["#0a84ff", "#bf5af2", "#ff375f", "#ff9f0a", "#30d158", "#64d2ff", "#98989d"] }
+                         swatches: ["#0a84ff", "#bf5af2", "#ff375f", "#ff9f0a", "#30d158", "#64d2ff", "#98989d"] }
                     ]
                 }
             ]
         },
         {
-            name: "Advanced", icon: "gear-six", color: Theme.muted, preview: false, resettable: false,
+            name: "Advanced", group: "SYSTEM", preview: false, resettable: false,
             sections: [
                 {
                     title: "Shell",
@@ -245,10 +280,6 @@ FloatingWindow {
         return win.c[it.when.k] === it.when.v
     }
 
-    function visibleItems(sec) {
-        return sec.items.filter(function (it) { return win.shown(it) })
-    }
-
     function pageKeys(pg) {
         const keys = []
         for (const s of pg.sections)
@@ -264,19 +295,40 @@ FloatingWindow {
             for (const s of pg.sections)
                 for (const it of s.items)
                     if (it.key && win.shown(it)
-                        && (it.label + " " + (it.hint || "") + " " + pg.name).toLowerCase().indexOf(q) >= 0)
-                        found.push(it)
+                        && (it.label + " " + (it.hint || "") + " " + pg.name).toLowerCase().indexOf(q) >= 0) {
+                        const copy = Object.assign({}, it)
+                        copy.pageName = pg.name
+                        found.push(copy)
+                    }
         return {
-            name: "Search", preview: false, resettable: false,
-            sections: [{
-                title: found.length > 0 ? "Results" : "",
-                footer: found.length > 0 ? "" : "No settings match “" + win.query.trim() + "”.",
-                items: found
-            }]
+            name: "Search", group: "SEARCH", preview: false, resettable: false,
+            empty: found.length > 0 ? "" : "No settings match \u201c" + win.query.trim() + "\u201d.",
+            sections: [{ title: "Results", items: found }]
         }
     }
 
     readonly property var activePage: win.query.trim() !== "" ? win.searchPage() : win.pages[win.page]
+
+    // rail groups, derived from each page's `group`
+    readonly property var railGroups: {
+        var out = [], idx = {}
+        for (var i = 0; i < win.pages.length; i++) {
+            var g = win.pages[i].group || ""
+            if (idx[g] === undefined) { idx[g] = out.length; out.push({ name: g, items: [] }) }
+            out[idx[g]].items.push({ index: i, name: win.pages[i].name })
+        }
+        return out
+    }
+
+    function go(i) {
+        if (i === win.page && win.query.trim() === "") return
+        win.dir = i >= win.page ? 1 : -1
+        win.page = i
+        searchField.clear()
+        win.query = ""
+        slide.from = win.dir * Tokens.s6 * 2
+        slide.restart()
+    }
 
     function runAction(it) {
         const home = Quickshell.env("HOME")
@@ -290,219 +342,281 @@ FloatingWindow {
             Quickshell.execDetached(["sh", "-c", "pkill -x qs; pkill -x quickshell; sleep 0.5; setsid -f qs --no-duplicate --path ~/.config/quickshell/dotarch >/dev/null 2>&1"])
     }
 
+    // fonts come from the system; an item may narrow them with `filter`
+    property var pickItem: null
+    function fontOptions(it) {
+        var all = Qt.fontFamilies()
+        if (!it || !it.filter) return all
+        return all.filter(function (f) { return f.toLowerCase().indexOf(it.filter) >= 0 })
+    }
+    function openFontPicker(it) {
+        win.pickItem = it
+        fontPicker.title = it.label
+        fontPicker.options = win.fontOptions(it)
+        fontPicker.current = String(win.c[it.key] || "")
+        fontPicker.open()
+    }
+
     // ------------------------------------------------------------------
     //  UI
     // ------------------------------------------------------------------
-    RowLayout {
+    Rectangle {
+        id: hub
         anchors.fill: parent
-        spacing: 0
+        color: Tokens.paper
+        focus: true
+        Keys.onEscapePressed: win.visible = false
 
-        // ---------------- Sidebar ----------------
-        Rectangle {
-            Layout.preferredWidth: 250
-            Layout.fillHeight: true
-            color: Theme.shellBackground
+        // ── rail ────────────────────────────────────────────────────────
+        Item {
+            id: rail
+            anchors { left: parent.left; top: parent.top; bottom: bar.top }
+            width: Tokens.railW
 
-            Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: Theme.cardBorder }
-
-            Row {
-                x: 18; y: 18; spacing: 8
-                Rectangle {
-                    width: 12; height: 12; radius: 6; color: "#ff5f57"
-                    MouseArea { anchors.fill: parent; anchors.margins: -3; onClicked: win.visible = false }
-                }
-                Rectangle { width: 12; height: 12; radius: 6; color: "#4a4a4c" }
-                Rectangle { width: 12; height: 12; radius: 6; color: "#4a4a4c" }
-            }
+            Rectangle { anchors.right: parent.right; width: 1; height: parent.height; color: Tokens.line }
 
             Rectangle {
-                x: 14; y: 50
-                width: parent.width - 28; height: 30
-                radius: 8; color: Qt.alpha(Theme.shellForeground, 0.06)
-                TextInput {
-                    id: searchField
-                    anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    verticalAlignment: TextInput.AlignVCenter
-                    color: Theme.foreground
-                    font.pixelSize: 13
-                    clip: true
-                    selectByMouse: true
-                    onTextChanged: win.query = text
-                    Keys.onEscapePressed: { if (text !== "") text = ""; else win.visible = false }
+                id: mast
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Tokens.s5 }
+                height: 64
+                color: "transparent"
+                radius: Tokens.radius
+                border.width: Tokens.border
+                border.color: Tokens.line
+                Column {
+                    anchors { left: parent.left; leftMargin: Tokens.s4; verticalCenter: parent.verticalCenter }
+                    spacing: 1
                     Text {
-                        visible: searchField.text === ""
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Search"
-                        color: Theme.muted
-                        font.pixelSize: 13
+                        text: "DOTARCH"
+                        color: Tokens.ink
+                        font.family: Tokens.ui
+                        font.pixelSize: 14
+                        font.weight: Font.Medium
+                        font.letterSpacing: 2.4
+                    }
+                    Text {
+                        text: "SHELL SETTINGS"
+                        color: Tokens.inkMuted
+                        font.family: Tokens.mono
+                        font.pixelSize: 10
+                        font.letterSpacing: 1.4
                     }
                 }
             }
 
-            Column {
-                x: 10; y: 94
-                width: parent.width - 20
-                spacing: 2
-                Repeater {
-                    model: win.pages
-                    delegate: Rectangle {
-                        id: navItem
-                        required property var modelData
-                        required property int index
-                        readonly property bool selected: win.page === index && win.query.trim() === ""
-                        width: parent.width; height: 36; radius: 8
-                        color: selected ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.16) : (navMouse.containsMouse ? Qt.alpha(Theme.shellForeground, 0.05) : "transparent")
+            Ui.Field {
+                id: searchField
+                anchors { left: parent.left; right: parent.right; top: mast.bottom; margins: Tokens.s5 }
+                anchors.topMargin: Tokens.s4
+                placeholder: "Search settings\u2026"
+                onEdited: (t) => win.query = t
+                onEscaped: {
+                    if (searchField.text !== "") { searchField.clear(); win.query = "" }
+                    else win.visible = false
+                }
+            }
 
-                        Rectangle {
-                            id: badge
-                            x: 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 24; height: 24; radius: 7
-                            color: navItem.selected ? navItem.modelData.color : Qt.rgba(navItem.modelData.color.r, navItem.modelData.color.g, navItem.modelData.color.b, 0.16)
-                            Behavior on color { ColorAnimation { duration: 150 } }
+            Flickable {
+                anchors { left: parent.left; right: parent.right; top: searchField.bottom; bottom: parent.bottom }
+                anchors.margins: Tokens.s5
+                anchors.topMargin: Tokens.s3
+                contentHeight: nav.height
+                clip: true
+
+                Column {
+                    id: nav
+                    width: parent.width
+                    spacing: 0
+
+                    Repeater {
+                        model: win.railGroups
+                        Column {
+                            id: grp
+                            required property var modelData
+                            required property int index
+                            width: nav.width
+                            spacing: 0
+
                             Item {
-                                anchors.centerIn: parent
-                                width: 16; height: 16
-                                Image {
-                                    id: glyph
-                                    anchors.fill: parent
-                                    source: Qt.resolvedUrl("icons/" + navItem.modelData.icon + ".svg")
-                                    sourceSize: Qt.size(64, 64)
-                                    mipmap: true
-                                    smooth: true
-                                    visible: false
-                                }
-                                MultiEffect {
-                                    anchors.fill: glyph
-                                    source: glyph
-                                    colorization: 1.0
-                                    colorizationColor: navItem.selected ? Theme.shellBackground : navItem.modelData.color
+                                width: parent.width
+                                height: 34
+                                visible: grp.modelData.name !== ""
+                                Row {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: Tokens.s2
+                                    Text {
+                                        text: (grp.index + 1 < 10 ? "0" : "") + (grp.index + 1)
+                                        color: Tokens.inkFaint
+                                        font.family: Tokens.mono
+                                        font.pixelSize: 9
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: grp.modelData.name
+                                        color: Tokens.inkFaint
+                                        font.family: Tokens.ui
+                                        font.pixelSize: 9
+                                        font.weight: Font.Medium
+                                        font.letterSpacing: 2
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Rectangle {
+                                        width: Math.max(0, nav.width - 110)
+                                        height: 1
+                                        color: Tokens.lineSoft
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
                                 }
                             }
-                        }
-                        Text {
-                            anchors.left: badge.right
-                            anchors.leftMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: navItem.modelData.name
-                            color: navItem.selected ? Theme.foreground : Qt.alpha(Theme.shellForeground, 0.72)
-                            font.pixelSize: 13
-                            font.weight: navItem.selected ? Font.Medium : Font.Normal
-                        }
-                        MouseArea {
-                            id: navMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: { searchField.text = ""; win.page = navItem.index }
+
+                            Repeater {
+                                model: grp.modelData.items
+                                Item {
+                                    id: navItem
+                                    required property var modelData
+                                    readonly property bool sel: win.page === modelData.index && win.query.trim() === ""
+                                    width: nav.width
+                                    height: 36
+
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.topMargin: 1
+                                        anchors.bottomMargin: 1
+                                        radius: Tokens.radius
+                                        color: navItem.sel ? Tokens.bone : (nh.hovered ? Tokens.tint10 : "transparent")
+                                        Behavior on color { ColorAnimation { duration: Tokens.snap } }
+                                    }
+                                    Row {
+                                        x: Tokens.s3
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: Tokens.s2
+                                        Text {
+                                            visible: navItem.sel
+                                            text: "//"
+                                            color: Tokens.inkOnBoneDim
+                                            font.family: Tokens.mono
+                                            font.pixelSize: 11
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        Text {
+                                            text: navItem.modelData.name
+                                            color: navItem.sel ? Tokens.inkOnBone : Tokens.inkDim
+                                            font.family: Tokens.ui
+                                            font.pixelSize: 14
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            Behavior on color { ColorAnimation { duration: Tokens.snap } }
+                                        }
+                                    }
+                                    HoverHandler { id: nh; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler { onTapped: win.go(navItem.modelData.index) }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        // ---------------- Content ----------------
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 0
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 68
-                color: Theme.shellBackground
-                Text {
-                    x: 28
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: win.activePage.name
-                    color: Theme.foreground
-                    font.pixelSize: 24
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: -0.3
-                }
-                Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: Theme.cardBorder }
+        // ── page host ───────────────────────────────────────────────────
+        Item {
+            id: host
+            anchors {
+                left: rail.right; right: parent.right
+                top: parent.top; bottom: bar.top
+                leftMargin: Tokens.s6; rightMargin: Tokens.s6
+                topMargin: Tokens.s5; bottomMargin: Tokens.s3
             }
+            clip: true
 
-            Flickable {
-                id: flick
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                contentWidth: width
-                contentHeight: body.implicitHeight + 48
-                boundsBehavior: Flickable.StopAtBounds
+            Loader {
+                id: sheetLoader
+                anchors.fill: parent
+                active: win.sheetReady
+                sourceComponent: Ui.SchemaSheet {
+                    width: host.width
+                    height: host.height
+                    page: win.activePage
+                    cfg: win.c
+                    onEdited: (key, value) => win.c[key] = value
+                    onActivated: (item) => win.runAction(item)
+                    onFontPickRequested: (item) => win.openFontPicker(item)
 
-                ColumnLayout {
-                    id: body
-                    x: 28; y: 22
-                    width: flick.width - 56
-                    spacing: 20
-
-                    NotchPreview {
+                    // the live miniature of the notch, riding above the cards
+                    Item {
                         visible: win.activePage.preview === true
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 190
-                        cfg: win.c
-                        accent: win.accent
-                        shellBg: Theme.shellBackground
-                        fg: Theme.shellForeground
-                        muted: Theme.muted
-                        iconFont: Theme.iconFontFamily
-                    }
-
-                    Repeater {
-                        model: win.activePage.sections
-                        delegate: SSection {
-                            id: sec
-                            required property var modelData
-                            Layout.fillWidth: true
-                            title: modelData.title || ""
-                            footer: modelData.footer || ""
-
-                            Repeater {
-                                model: win.visibleItems(sec.modelData)
-                                delegate: SRow {
-                                    required property var modelData
-                                    required property int index
-                                    Layout.fillWidth: true
-                                    divider: index > 0
-                                    accent: win.accent
-                                    type: modelData.type
-                                    label: modelData.label
-                                    hint: modelData.hint || ""
-                                    value: modelData.key ? win.c[modelData.key] : null
-                                    from: modelData.min !== undefined ? modelData.min : 0
-                                    to: modelData.max !== undefined ? modelData.max : 100
-                                    step: modelData.step || 1
-                                    unit: modelData.unit || ""
-                                    zeroLabel: modelData.zero || ""
-                                    options: modelData.options || []
-                                    swatches: modelData.swatches || []
-                                    buttonText: modelData.text || ""
-                                    danger: modelData.danger === true
-                                    onEdited: v => win.c[modelData.key] = v
-                                    onActivated: win.runAction(modelData)
-                                }
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        visible: win.query.trim() === "" && win.activePage.resettable !== false
-                        Layout.alignment: Qt.AlignRight
-                        Layout.preferredWidth: resetText.implicitWidth + 28
-                        Layout.preferredHeight: 28
-                        radius: 7
-                        color: Theme.bg2
-                        Text { id: resetText; anchors.centerIn: parent; text: "Reset This Page"; color: Theme.foreground; font.pixelSize: 12 }
-                        MouseArea {
+                        width: parent.width
+                        height: 190
+                        NotchPreview {
                             anchors.fill: parent
-                            onClicked: NotchSettings.resetKeys(win.pageKeys(win.activePage))
+                            cfg: win.c
+                            accent: win.accent
+                            shellBg: Theme.shellBackground
+                            fg: Theme.shellForeground
+                            muted: Theme.muted
+                            iconFont: Theme.iconFontFamily
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            radius: Tokens.radius
+                            border.width: Tokens.border
+                            border.color: Tokens.line
                         }
                     }
                 }
             }
+
+            NumberAnimation {
+                id: slide
+                target: sheetLoader.item
+                property: "x"
+                to: 0
+                duration: Tokens.move
+                easing.type: Tokens.ease
+            }
+        }
+
+        // ── footer ──────────────────────────────────────────────────────
+        Item {
+            id: bar
+            anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+            height: 60
+
+            Rectangle { anchors.top: parent.top; width: parent.width; height: 1; color: Tokens.line }
+
+            Row {
+                anchors { left: parent.left; leftMargin: Tokens.s5; verticalCenter: parent.verticalCenter }
+                spacing: Tokens.s3
+                Text {
+                    text: "///"
+                    color: Tokens.inkFaint
+                    font.family: Tokens.mono
+                    font.pixelSize: 10
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    text: "SAVED \u00b7 LIVE ON YOUR SHELL"
+                    color: Tokens.inkDim
+                    font.family: Tokens.ui
+                    font.pixelSize: 11
+                    font.weight: Font.Medium
+                    font.letterSpacing: 1.6
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+            Ui.Btn {
+                visible: win.query.trim() === "" && win.activePage.resettable !== false
+                anchors { right: parent.right; rightMargin: Tokens.s6; verticalCenter: parent.verticalCenter }
+                text: "RESET THIS PAGE"
+                onAct: NotchSettings.resetKeys(win.pageKeys(win.activePage))
+            }
+        }
+
+        // ── font picker overlay ─────────────────────────────────────────
+        Ui.Picker {
+            id: fontPicker
+            anchors.fill: parent
+            onChose: (name) => { if (win.pickItem) win.c[win.pickItem.key] = name }
         }
     }
 }

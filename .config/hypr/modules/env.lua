@@ -1,5 +1,5 @@
 -- ENVIRONMENT
-hl.env("XCURSOR_THEME", "macOS")
+hl.env("XCURSOR_THEME", "Robella-39")
 hl.env("XCURSOR_SIZE", "36")
 hl.env("HYPRCURSOR_SIZE", "36")
 

@@ -9,3 +9,14 @@ todos.json
 *.save
 *.cursor-backup
 .vscode/
+
+# Local backups and temporary files
+*.backup*
+*.old
+*.swp
+*backup*
+*.kit-*
+.config/quickshell/dotarch/state/
+*.bak*
+*.pre-*
+*.before-*

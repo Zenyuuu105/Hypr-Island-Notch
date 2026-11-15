@@ -11,8 +11,18 @@ Rectangle {
     property color muted: "#9a9a9a"
     property string iconFont: ""
     // used when a size is set to "Auto" (the real value comes from ShellState.targetWidth)
-    property int autoRestWidth: 200
-    property int autoHoverWidth: 480
+    readonly property real restHalf: {
+        var cw = restClock.visible ? Math.max(restClock.implicitWidth, restClock.width) : 0;
+        var left = restDots.visible ? Math.max(restDots.implicitWidth, restDots.width) + 12 : 0;
+        var rx = extras.implicitWidth > 0 ? 8 + extras.implicitWidth : 0;
+        var ri = status.implicitWidth > 0 ? 12 + status.implicitWidth : 0;
+        return cw / 2 + Math.max(left, rx + ri);
+    }
+    property int autoRestWidth: Math.max(120, Math.ceil(restHalf * 2) + 60)
+    property int autoHoverWidth: Math.max(480, Math.ceil(Math.max(
+        2 * Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth) + 28
+            + (cfg.showHoverMedia ? 150 : 0),
+        clockGroup.implicitWidth)) + 60)
     property bool expanded: false
     property date now: new Date()
 
@@ -134,6 +144,7 @@ Rectangle {
                 Behavior on opacity { NumberAnimation { duration: 90 } }
 
                 WorkspaceDots {
+                    id: restDots
                     visible: root.cfg.showWorkspaces
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
@@ -149,6 +160,7 @@ Rectangle {
                 }
 
                 Row {
+                    id: extras
                     anchors.left: restClock.right
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
@@ -192,6 +204,7 @@ Rectangle {
                 }
 
                 Row {
+                    id: status
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 5
@@ -249,6 +262,7 @@ Rectangle {
 
                 Item {
                     id: columns
+                    readonly property real sideW: Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth)
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -258,6 +272,7 @@ Rectangle {
 
                     Column {
                         id: leftGroup
+                        width: columns.sideW
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 5
@@ -280,9 +295,9 @@ Rectangle {
                     }
 
                     Rectangle {
-                        visible: root.cfg.showHoverMedia
+                        visible: root.cfg.showHoverMedia && width > 60
                         anchors.centerIn: parent
-                        width: Math.max(150, parent.width - 2 * (Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth) + 14))
+                        width: Math.max(0, parent.width - 2 * (columns.sideW + 14))
                         height: 40
                         radius: 16
                         color: Qt.rgba(1, 1, 1, 0.04)
@@ -298,11 +313,12 @@ Rectangle {
 
                     Column {
                         id: rightGroup
+                        width: columns.sideW
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 6
                         Row {
-                            anchors.right: parent.right
+                            anchors.horizontalCenter: parent.horizontalCenter
                             spacing: 6
                             ShellText {
                                 visible: root.cfg.showHoverStatus
