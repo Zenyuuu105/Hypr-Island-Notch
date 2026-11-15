@@ -12,6 +12,7 @@ My Arch Linux / CachyOS desktop setup.
 - Clipboard history, screenshots and recording
 - GTK and Qt theming
 - Wallpaper collection with theme-specific folders
+- Qylock lock screen and SDDM login themes
 
 ## Desktop Showcase
 
@@ -45,7 +46,7 @@ Git and sudo configured for your user.
 
 Clone the repository:
 
-    git clone https://github.com/Zenyuuu105/dotfiles.git
+    git clone https://github.com/Zenyuuu105/Hypr-Island-Notch.git dotfiles
     cd dotfiles
 
 Run the installer:
@@ -70,6 +71,10 @@ Preview changes without applying them:
 Copy configurations without installing packages:
 
     ./install.sh --no-packages
+
+Skip the qylock login themes (about 575MB download) and the SDDM step:
+
+    ./install.sh --no-qylock
 
 ## Package management
 
@@ -99,6 +104,6 @@ enable your display manager.
 
 ## Qylock login theme
 
-The installer deploys the custom qylock files and, unless you pass `--no-qylock`, downloads the upstream themes (about 575MB, pinned to a fixed commit) and installs them as SDDM login themes. It needs `sddm` installed and uses `sudo` for that step. The default theme is `last-of-us`; change it afterwards from the Lock page in Dotarch.
+The installer deploys the custom qylock files and, unless you pass `--no-qylock`, downloads the upstream themes (about 575MB, pinned to a fixed commit) and installs them as SDDM login themes. It needs `sddm` installed and uses `sudo` for that step. It only installs the themes and sets the SDDM theme; it does not enable SDDM or change your login manager. The default theme is `last-of-us`; change it afterwards from the Lock page in Dotarch.
 
     ./install.sh --no-qylock    # skip the download and the SDDM step
