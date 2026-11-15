@@ -96,3 +96,9 @@ Existing wallpaper files are preserved and are not overwritten.
 After installation, log out or reboot and select the Hyprland UWSM session
 from your login manager. The installer does not automatically replace or
 enable your display manager.
+
+## Qylock login theme
+
+The installer deploys the custom qylock files and, unless you pass `--no-qylock`, downloads the upstream themes (about 575MB, pinned to a fixed commit) and installs them as SDDM login themes. It needs `sddm` installed and uses `sudo` for that step. The default theme is `last-of-us`; change it afterwards from the Lock page in Dotarch.
+
+    ./install.sh --no-qylock    # skip the download and the SDDM step

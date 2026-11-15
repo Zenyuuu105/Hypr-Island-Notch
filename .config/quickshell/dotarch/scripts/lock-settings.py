@@ -17,7 +17,7 @@ PREFIX = "qylock-"
 def theme_sources():
     result = []
 
-    for folder in sorted(THEMES.iterdir(), key=lambda p: p.name.lower()):
+    for folder in (sorted(THEMES.iterdir(), key=lambda p: p.name.lower()) if THEMES.is_dir() else []):
         if not folder.is_dir() or folder.name == "clockwork":
             continue
         if (folder / "Main.qml").is_file():

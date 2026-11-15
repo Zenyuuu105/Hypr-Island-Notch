@@ -9,6 +9,7 @@ BACKUP_DIR="$HOME/.dotfiles-backup/$STAMP"
 
 DRY=0
 PKGS=1
+QYLOCK=1
 OPTIONAL=0
 DEPLOY=1
 AUR_HELPER=""
@@ -24,6 +25,7 @@ Usage: ./install.sh [options]
 
   --dry-run       Preview changes without modifying the system
   --no-packages   Copy configurations only
+  --no-qylock     Skip qylock themes download (~575MB) and SDDM login theme setup
   --optional      Also install optional applications and AUR packages
   --packages-only Install packages/services without changing user files
   -h, --help      Show this help
@@ -43,6 +45,7 @@ for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY=1 ;;
         --no-packages) PKGS=0 ;;
+        --no-qylock) QYLOCK=0 ;;
         --optional) OPTIONAL=1 ;;
         --packages-only) DEPLOY=0 ;;
         -h|--help) usage; exit 0 ;;
@@ -192,9 +195,72 @@ deploy_configs() {
     shopt -s nullglob dotglob
     for src in "$REPO_DIR"/.config/*; do
         [[ -e "$src" || -L "$src" ]] || continue
+        [[ "$(basename -- "$src")" == qylock ]] && continue   # handled by install_qylock
         backup_and_copy "$src" "$HOME/.config/$(basename -- "$src")"
     done
     shopt -u nullglob dotglob
+}
+
+install_qylock() {
+    local dest="$HOME/.config/qylock"
+    local url="https://github.com/Darkkal44/qylock.git"
+    local pin="c2933f27b655a999911e6699e1b2c67e59cbd428"
+    local default_theme="last-of-us"
+    local src tmp
+
+    [[ -d "$REPO_DIR/.config/qylock" ]] || { warn "No qylock config in repo, skipping."; return 0; }
+
+    say "Deploying qylock configuration"
+    run mkdir -p "$dest"
+    shopt -s nullglob dotglob
+    for src in "$REPO_DIR"/.config/qylock/*; do
+        [[ "$(basename -- "$src")" == themes_link ]] && continue   # created below with ln -sfn
+        backup_and_copy "$src" "$dest/$(basename -- "$src")"
+    done
+    shopt -u nullglob dotglob
+
+    if (( ! QYLOCK )); then
+        say "Skipping qylock themes and SDDM login theme (--no-qylock)"
+        return 0
+    fi
+
+    if [[ ! -d "$dest/themes" ]]; then
+        if (( DRY )); then
+            say "[dry-run] Would download qylock themes (~575MB) at ${pin:0:7}"
+        else
+            say "Downloading qylock themes (~575MB)"
+            mkdir -p "$HOME/.cache"
+            tmp="$(mktemp -d -p "$HOME/.cache" qylock-XXXXXX)"
+            if git -C "$tmp" init -q \
+                && git -C "$tmp" fetch -q --depth 1 "$url" "$pin" \
+                && git -C "$tmp" checkout -q FETCH_HEAD \
+                && [[ -d "$tmp/themes" ]] \
+                && mv -- "$tmp/themes" "$dest/themes"; then
+                :
+            else
+                warn "Could not download qylock themes; skipping."
+            fi
+            rm -rf "$tmp"
+        fi
+    fi
+
+    if (( DRY )); then
+        say "[dry-run] Would install and apply the qylock SDDM theme"
+        return 0
+    fi
+    [[ -d "$dest/themes" ]] || return 0
+
+    ln -sfn themes "$dest/themes_link"
+    [[ -f "$dest/theme" ]] || printf '%s\n' "$default_theme" > "$dest/theme"
+
+    if command -v sddm >/dev/null 2>&1; then
+        say "Installing qylock SDDM themes (sudo)"
+        sudo env PKEXEC_UID="$(id -u)" python3 "$dest/scripts/install-sddm-themes.py" install-all \
+            && sudo env PKEXEC_UID="$(id -u)" python3 "$dest/scripts/install-sddm-themes.py" apply "$(<"$dest/theme")" \
+            || warn "SDDM theme setup failed. Use the Lock page in Dotarch to retry."
+    else
+        warn "sddm is not installed; skipping the login theme. Install sddm and rerun."
+    fi
 }
 
 deploy_local_scripts() {
@@ -269,6 +335,7 @@ fi
 
 if (( DEPLOY )); then
     deploy_configs
+    install_qylock
     deploy_local_scripts
 
     # iris (wallpaper color tool)
