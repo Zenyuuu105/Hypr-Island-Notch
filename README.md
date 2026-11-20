@@ -6,6 +6,9 @@ My Arch Linux / CachyOS desktop setup.
 
 - Hyprland with UWSM
 - Quickshell Dotarch with animated notch
+- Redesigned Control Center, with a display panel behind the brightness button (resolution and scaling) and an input audio selector under the output selector
+- Redesigned Power Menu
+- Custom Hyprlock lock screen with a drawn clock and lock pill
 - Dynamic themes with Matugen
 - Kitty, Fish and Starship
 - PipeWire 
@@ -96,6 +99,13 @@ Existing configuration files are moved to:
     ~/.dotfiles-backup/
 
 Existing wallpaper files are preserved and are not overwritten.
+
+## Fonts
+
+The notch and GTK theme use the SF Compact font family, which cannot be
+redistributed here. Install it yourself into `~/.local/share/fonts/SF-Compact/`
+and run `fc-cache -f`. Until then the shell falls back to a default font, and
+the installer prints a warning.
 
 ## Login
 
