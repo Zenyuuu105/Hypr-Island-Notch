@@ -78,10 +78,10 @@ PanelWindow {
     }
     readonly property real canvasWidth: Math.max(640, themePanel.implicitWidth + cornerWing * 2 + 24, wallpaperPanel.implicitWidth + cornerWing * 2 + 24, NotchSettings.cfg.panelWidth + cornerWing * 2 + 24, NotchSettings.cfg.expandedWidth + cornerWing * 2 + 24, NotchSettings.cfg.collapsedWidth + cornerWing * 2 + 24)
     readonly property real canvasHeight: Math.max(740, NotchSettings.cfg.panelHeight + requestedTopPadding + requestedBottomPadding + islandMargin + 24, NotchSettings.cfg.expandedHeight + islandMargin + 24, Math.max(controlPanel.implicitHeight, themePanel.implicitHeight, wallpaperPanel.implicitHeight) + requestedTopPadding + requestedBottomPadding + islandMargin + 24)
-    readonly property int requestedTopPadding: (ShellState.panel === "theme" || ShellState.panel === "wallpaper") ? 0 : (ShellState.panel === "launcher" ? 10 : contentPadding)
-    readonly property int requestedBottomPadding: (ShellState.panel === "theme" || ShellState.panel === "wallpaper") ? 0 : (ShellState.panel === "launcher" ? 4 : contentPadding)
-    readonly property int displayedTopPadding: (displayedPanel === "theme" || displayedPanel === "wallpaper") ? 0 : (displayedPanel === "launcher" ? 10 : contentPadding)
-    readonly property int displayedBottomPadding: (displayedPanel === "theme" || displayedPanel === "wallpaper") ? 0 : (displayedPanel === "launcher" ? 4 : contentPadding)
+    readonly property int requestedTopPadding: (ShellState.panel === "theme" || ShellState.panel === "wallpaper") ? 0 : (ShellState.panel === "launcher" ? 10 : (ShellState.panel === "control" ? contentPadding : contentPadding))
+    readonly property int requestedBottomPadding: (ShellState.panel === "theme" || ShellState.panel === "wallpaper") ? 0 : (ShellState.panel === "launcher" ? 4 : ((ShellState.panel === "control" || ShellState.panel === "display") ? 12 : contentPadding))
+    readonly property int displayedTopPadding: (displayedPanel === "theme" || displayedPanel === "wallpaper") ? 0 : (displayedPanel === "launcher" ? 10 : (displayedPanel === "control" ? contentPadding : contentPadding))
+    readonly property int displayedBottomPadding: (displayedPanel === "theme" || displayedPanel === "wallpaper") ? 0 : (displayedPanel === "launcher" ? 4 : ((displayedPanel === "control" || displayedPanel === "display") ? 12 : contentPadding))
     readonly property real restGap: 14
     readonly property real restLeftW: NotchSettings.cfg.showWorkspaces ? restDots.implicitWidth : 0
     readonly property real restClockW: NotchSettings.cfg.showClock ? restClock.implicitWidth : 0
@@ -124,7 +124,7 @@ PanelWindow {
     readonly property real targetVisualWidth: baseWidth + cornerWing * 2
     readonly property real restWidth: NotchSettings.cfg.collapsedWidth > 0 ? NotchSettings.cfg.collapsedWidth : collapsedContentWidth
     readonly property real targetVisualHeight: ShellState.expanded ? panelContentHeight + requestedTopPadding + requestedBottomPadding : compactHeight
-    readonly property real panelContentHeight: ShellState.expanded ? (ShellState.panel === "theme" ? themePanel.implicitHeight : ShellState.panel === "wallpaper" ? wallpaperPanel.implicitHeight : ShellState.panel === "control" ? controlPanel.implicitHeight : (NotchSettings.cfg.panelHeight > 0 ? NotchSettings.cfg.panelHeight : Math.max(ShellState.panelHeights[ShellState.panel] || 0, requestedPanel ? requestedPanel.implicitHeight : 0))) : 0
+    readonly property real panelContentHeight: ShellState.expanded ? (ShellState.panel === "theme" ? themePanel.implicitHeight : ShellState.panel === "wallpaper" ? wallpaperPanel.implicitHeight : (ShellState.panel === "control" || ShellState.panel === "display") ? controlPanel.implicitHeight : (NotchSettings.cfg.panelHeight > 0 ? NotchSettings.cfg.panelHeight : Math.max(ShellState.panelHeights[ShellState.panel] || 0, requestedPanel ? requestedPanel.implicitHeight : 0))) : 0
     property bool contentRevealed: false
     property real openH: 0
     property real openW: 0
@@ -212,6 +212,7 @@ PanelWindow {
             "wallpaper": wallpaperPanel,
             "capture": capturePanel,
             "power": powerPanel,
+            "display": displayPanel,
             "notifications": notificationsPanel,
             "calendar": calendarPanel
         };
@@ -228,6 +229,7 @@ PanelWindow {
             "wallpaper": wallpaperPanel,
             "capture": capturePanel,
             "power": powerPanel,
+            "display": displayPanel,
             "notifications": notificationsPanel,
             "calendar": calendarPanel
         };
@@ -552,6 +554,15 @@ PanelWindow {
         Item {
             id: statusHeader
 
+            onVisibleChanged: {
+                if (visible && restDots.visible) {
+                    const p = restDots.mapToItem(hoverLayout.contentItem, 0, 0)
+                    hoverLayout.restDotsRect = Qt.rect(p.x, p.y, restDots.width, restDots.height)
+                } else {
+                    hoverLayout.restDotsRect = Qt.rect(0, 0, 0, 0)
+                }
+            }
+
             readonly property var player: window.hoverPlayer
             readonly property bool playing: !!player && player.isPlaying
 
@@ -560,8 +571,8 @@ PanelWindow {
             anchors.right: notchBody.right
             anchors.top: parent.top
             height: window.hoverHeight
-            anchors.leftMargin: 26
-            anchors.rightMargin: 26
+            anchors.leftMargin: 18
+            anchors.rightMargin: 18
             visible: opacity > 0
             opacity: ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive && !ShellState.expanded ? window.pillIn : 0
 
@@ -599,296 +610,17 @@ PanelWindow {
                 }
             }
 
-            // ---------- top row: centered time + date ----------
-            Row {
-                id: clockGroup
-
-                anchors.top: parent.top
-                anchors.topMargin: 6
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 8
-
-                ShellText {
-                    id: clockTimeText
-                    visible: NotchSettings.cfg.showHoverClock
-                    anchors.bottom: parent.bottom
-                    text: Qt.formatDateTime(clock.date, window.clockFormat)
-                    font.family: Theme.displayFontFamily
-                    color: Theme.shellForeground
-                    font.pixelSize: 17
-                    font.weight: Font.Bold
-                }
-
-                ShellText {
-                    anchors.verticalCenter: clockTimeText.verticalCenter
-                    visible: NotchSettings.cfg.showHoverDate
-                    text: Qt.formatDate(clock.date, "ddd, MMM d")
-                    color: Theme.muted
-                    font.pixelSize: 11
-                }
-            }
-
-            MouseArea {
-                anchors.fill: clockGroup
-                anchors.margins: -6
-                cursorShape: Qt.PointingHandCursor
-                onClicked: ShellState.show("calendar")
-            }
-
-            // ---------- second row ----------
-            Item {
-                id: columns
-                readonly property real sideW: Math.max(leftGroup.implicitWidth, rightGroup.implicitWidth)
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.topMargin: 32
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 8
-
-                // left: "- Desktop" + workspace dots
-                Column {
-                    id: leftGroup
-                    width: columns.sideW
-
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 5
-
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 6
-
-                        Rectangle {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 6
-                            height: 2
-                            radius: 1
-                            color: Theme.muted
-                        }
-
-                        ShellText {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Desktop"
-                            color: Theme.shellForeground
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                        }
-                    }
-
-                    WorkspaceDots {
-                        // dotsCentered
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        visible: NotchSettings.cfg.showHoverWorkspaces
-                    }
-                }
-
-                // center: media pill
-                Rectangle {
-                    id: mediaCard
-                    visible: NotchSettings.cfg.showHoverMedia
-
-                    anchors.centerIn: parent
-                    width: Math.max(150, parent.width - 2 * (columns.sideW + 14))
-                    height: 40
-                    radius: 16
-                    color: Qt.rgba(1, 1, 1, 0.04)
-                    border.width: 1
-                    border.color: Theme.cardBorder
-
-                    ShellText {
-                        anchors.centerIn: parent
-                        visible: !statusHeader.player
-                        text: "Not playing"
-                        color: Theme.muted
-                        font.pixelSize: 12
-                    }
-
-                    Item {
-                        anchors.fill: parent
-                        visible: !!statusHeader.player
-
-                        ClippingRectangle {
-                            id: artTile
-
-                            anchors.left: parent.left
-                            anchors.leftMargin: 5
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 30
-                            height: 30
-                            radius: 15
-                            color: Theme.bg1
-
-                            Image {
-                                id: artImage
-
-                                anchors.fill: parent
-                                source: statusHeader.player ? statusHeader.player.trackArtUrl : ""
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                visible: status === Image.Ready
-                            }
-
-                            ShellText {
-                                anchors.centerIn: parent
-                                visible: artImage.status !== Image.Ready
-                                text: "\uDB81\uDF5A"
-                                font.family: Theme.iconFontFamily
-                                color: Theme.muted
-                                font.pixelSize: 15
-                            }
-                        }
-
-                        // waveform: peaks in the middle, fades outward
-                        Row {
-                            id: vizRow
-
-                            readonly property int count: 15
-                            readonly property int mid: 7
-                            property real runPeak: 1
-                            property var fallback: [0.3, 0.5, 0.4, 0.6, 0.5, 0.7, 0.6, 0.8]
-                            readonly property bool hasData: window.visualizerBars.some(function (v) { return v > 0; })
-
-                            anchors.right: parent.right
-                            anchors.rightMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 2
-                            height: 22
-
-                            Connections {
-                                target: window
-
-                                function onVisualizerBarsChanged() {
-                                    var mx = Math.max.apply(null, window.visualizerBars);
-                                    vizRow.runPeak = Math.max(1, mx, vizRow.runPeak * 0.995);
-                                }
-                            }
-
-                            Timer {
-                                interval: 110
-                                repeat: true
-                                running: statusHeader.visible && statusHeader.playing && !vizRow.hasData
-                                onTriggered: {
-                                    var a = [];
-                                    for (var n = 0; n < 8; n++)
-                                        a.push(0.25 + Math.random() * 0.75);
-                                    vizRow.fallback = a;
-                                }
-                            }
-
-                            Repeater {
-                                model: vizRow.count
-
-                                Rectangle {
-                                    required property int index
-                                    readonly property int k: Math.abs(index - vizRow.mid)
-                                    readonly property real lvl: vizRow.hasData
-                                        ? window.visualizerBars[Math.min(11, Math.round(k * 11 / 7))] / vizRow.runPeak
-                                        : vizRow.fallback[k]
-                                    readonly property real envelope: 0.3 + 0.7 * Math.exp(-(k * k) / 22)
-
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 2
-                                    radius: 1
-                                    height: statusHeader.playing ? 2 + Math.min(1, lvl) * envelope * 20 : 2
-                                    color: Theme.primary
-                                    opacity: (statusHeader.playing ? 1 : 0.35) * Math.max(0.3, 1 - k * 0.09)
-
-                                    Behavior on height {
-                                        SpringAnim {}
-                                    }
-                                }
-                            }
-                        }
-
-                        Column {
-                            anchors.left: artTile.right
-                            anchors.leftMargin: 8
-                            anchors.right: vizRow.left
-                            anchors.rightMargin: 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 0
-
-                            ShellText {
-                                width: parent.width
-                                elide: Text.ElideRight
-                                text: statusHeader.player ? (statusHeader.player.trackTitle || "Unknown title") : ""
-                                color: Theme.shellForeground
-                                font.pixelSize: 12
-                                font.weight: Font.Bold
-                            }
-
-                            ShellText {
-                                width: parent.width
-                                elide: Text.ElideRight
-                                text: statusHeader.player ? (statusHeader.player.trackArtist || statusHeader.player.trackAlbum || "") : ""
-                                color: Theme.muted
-                                font.pixelSize: 10
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (statusHeader.player && statusHeader.player.canTogglePlaying)
-                                statusHeader.player.togglePlaying();
-                        }
-                    }
-                }
-
-                // right: "All caught up" + bell, wifi + battery under
-                Column {
-                    id: rightGroup
-                    width: columns.sideW
-
-                    readonly property int notifCount: ShellState.notificationModel ? ShellState.notificationModel.values.length : 0
-
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 6
-
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 6
-
-                        ShellText {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: NotchSettings.cfg.showHoverStatus
-                            text: rightGroup.notifCount > 0 ? rightGroup.notifCount + " new" : "All caught up"
-                            color: Theme.shellForeground
-                            font.pixelSize: 12
-                            font.weight: Font.DemiBold
-                        }
-
-                        NotchBell {
-                            visible: NotchSettings.cfg.showHoverStatus
-                            anchors.verticalCenter: parent.verticalCenter
-                            tint: Theme.muted
-                        }
-                    }
-
-                    Row {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        spacing: 5
-
-                        WifiGlyph {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: NotchSettings.cfg.showHoverStatus
-                            connected: window.wifiConnected
-                            level: window.wifiSignal
-                        }
-
-                        BatteryGlyph {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: NotchSettings.cfg.showHoverStatus
-                            level: window.batteryLevel
-                            charging: window.batteryCharging
-                        }
-                    }
-                }
+            HoverLayout {
+                id: hoverLayout
+                anchors.fill: parent
+                player: window.hoverPlayer
+                date: clock.date
+                timeFormat: window.clockFormat
+                showClock: NotchSettings.cfg.showHoverClock
+                showDate: NotchSettings.cfg.showHoverDate
+                showMedia: NotchSettings.cfg.showHoverMedia
+                showWorkspaces: NotchSettings.cfg.showHoverWorkspaces
+                onClockClicked: ShellState.show("calendar")
             }
         }
 
@@ -902,15 +634,19 @@ PanelWindow {
             visible: opacity > 0
             opacity: ShellState.osdActive && !ShellState.expanded ? 1 : 0
 
-            ShellText {
+                        VectorIcon {
                 id: osdIcon
 
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: ShellState.osdKind === "brightness" ? "\uDB80\uDCE0" : (ShellState.osdMuted ? "\uDB81\uDF5F" : "\uDB81\uDD7E")
-                font.family: Theme.iconFontFamily
+
+                name: ShellState.osdKind === "brightness"
+                      ? "sun"
+                      : (ShellState.osdMuted ? "mute" : "volume")
+
+                value: ShellState.osdValue
                 color: Theme.shellForeground
-                font.pixelSize: 22
+                size: 22
             }
 
             Rectangle {
@@ -1436,6 +1172,13 @@ PanelWindow {
                 visible: window.displayedPanel === "calendar"
             }
 
+            DisplayPanel {
+                id: displayPanel
+
+                width: parent.width
+                visible: window.displayedPanel === "display"
+            }
+
             PowerPanel {
                 id: powerPanel
 
@@ -1541,6 +1284,16 @@ PanelWindow {
         path: "/sys/class/backlight/intel_backlight/brightness"
         onLoaded: {
             const v = parseInt(text());
+
+            // Keep the Control Centre brightness slider in sync with hardware.
+            if (Number.isFinite(v) && window.maxBrightness > 0) {
+                const percent = Math.round(
+                    Math.max(0, Math.min(1, v / window.maxBrightness)) * 100
+                );
+                if (Backend.brightness !== percent)
+                    Backend.brightness = percent;
+            }
+
             if (window.lastBrightness >= 0 && v !== window.lastBrightness && window.maxBrightness > 0)
                 window.showOsd("brightness", v / window.maxBrightness, false);
 
@@ -1571,7 +1324,7 @@ PanelWindow {
     Process {
         id: cavaProcess
         command: ["cava", "-p", "/home/entity303069/.config/cava/notch"]
-        running: true
+        running: statusHeader.visible && statusHeader.playing
 
         stdout: SplitParser {
             splitMarker: "\n"

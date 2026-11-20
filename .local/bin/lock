@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+LOCK_ICON=$(printf "\xef\x80\xa3")
+CLOCK_FONT="Nunito Black"          # after installing SF Compact Rounded, e.g. "SF Compact Rounded Black"
+CLOCK_COLOR="rgba(255,255,255,0.70)"   # clip measured mint; try rgba(92,223,199,1.0)
+
 WALLPAPER="$(awww query 2>/dev/null | sed -n 's/.*currently displaying: image: //p' | head -n1)"
 
 if [[ -z "$WALLPAPER" || ! -f "$WALLPAPER" ]]; then
@@ -11,10 +15,24 @@ if [[ -z "$WALLPAPER" ]]; then
     exit 1
 fi
 
+LOCKCLOCK_BIN="$HOME/.local/bin/lockclock"
+CLOCK_IMG="$("$LOCKCLOCK_BIN")"
+CLOCK_SIZE="$("$LOCKCLOCK_BIN" size)"
+CLOCK_Y=$(( CLOCK_SIZE * 215 / 1000 ))
+
 cat > ~/.config/hypr/hyprlock.conf <<EOF2
 general {
     hide_cursor = true
-    grace = 0
+}
+
+animations {
+    enabled = true
+    bezier = easeOut, 0.16, 1, 0.3, 1
+    bezier = linear, 1, 1, 0, 0
+    animation = fadeIn, 1, 5, linear
+    animation = fadeOut, 1, 5, linear
+    animation = inputFieldWidth, 1, 6, easeOut
+    animation = inputFieldDots, 1, 2, linear
 }
 
 background {
@@ -28,73 +46,45 @@ background {
     contrast = 1.0
 }
 
-# HOURS
-label {
+# CLOCK (drawn image, no font)
+image {
     monitor =
-    text = cmd[update:1000] date +"%I"
-    color = rgba(205,238,224,1.0)
-    font_size = 105
-    font_family = Noto Sans Bold
-    position = 0, 105
+    path = $CLOCK_IMG
+    size = $CLOCK_SIZE
+    rounding = 0
+    border_size = 0
+    reload_time = 1
+    reload_cmd = $LOCKCLOCK_BIN
+    position = 0, -$CLOCK_Y
     halign = center
     valign = center
 }
 
-# MINUTES
-label {
-    monitor =
-    text = cmd[update:1000] date +"%M"
-    color = rgba(205,238,224,1.0)
-    font_size = 105
-    font_family = Noto Sans Bold
-    position = 0, -5
-    halign = center
-    valign = center
-}
-
-# WEEKDAY - ENGLISH
-label {
-    monitor =
-    text = cmd[update:60000] env LC_TIME=C date +"%A"
-    color = rgba(205,238,224,0.95)
-    font_size = 16
-    font_family = Noto Sans
-    position = 0, -100
-    halign = center
-    valign = center
-}
-
-# DATE - ENGLISH
-label {
-    monitor =
-    text = cmd[update:60000] env LC_TIME=C date +"%d %B %Y"
-    color = rgba(205,238,224,0.85)
-    font_size = 12
-    font_family = Noto Sans
-    position = 0, -125
-    halign = center
-    valign = center
-}
-
-# TRANSLUCENT GLASS PASSWORD FIELD
+# LOCK PILL (top): lock icon when empty, dots while typing
 input-field {
     monitor =
-    size = 184, 40
+    size = 64, 44
+    rounding = -1
     outline_thickness = 0
-    dots_size = 0.25
-    dots_spacing = 0.3
+    inner_color = rgba(0, 0, 0, 0.55)
+    outer_color = rgba(0, 0, 0, 0)
+    font_color = rgba(255, 255, 255, 0.90)
+    check_color = rgba(255, 255, 255, 0.90)
+    fail_color = rgba(255, 107, 107, 0.95)
+    dots_size = 0.22
+    dots_spacing = 0.30
     dots_center = true
-    outer_color = rgba(205,238,224,0.55)
-    inner_color = rgba(230,245,240,0.28)
-    font_color = rgba(205,238,224,1.0)
+    dots_rounding = -1
     fade_on_empty = false
-    placeholder_text =
-    placeholder_color = rgba(205,238,224,0.65)
-        position = 0, 85
+    placeholder_text = <span font_family="Symbols Nerd Font" font_size="xx-large" foreground="##ffffffcc">$LOCK_ICON</span>
+    fail_text = <i>\$FAIL</i>
+    hide_input = false
+    position = 0, -40
     halign = center
-    valign = bottom
+    valign = top
 }
 EOF2
 
-chmod +x ~/.local/bin/lock
+[[ -n "$LOCK_DRY" ]] && exit 0
+
 exec hyprlock

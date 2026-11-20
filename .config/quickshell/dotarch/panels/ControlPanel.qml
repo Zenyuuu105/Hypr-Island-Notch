@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Networking
 import Quickshell.Services.Mpris
@@ -12,9 +13,11 @@ import Quickshell.Widgets
 import qs
 import qs.components
 import ".."
+import QtQuick.Shapes
 
 FocusScope {
     id: root
+    readonly property color accent: Theme.primary
 
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property var source: Pipewire.defaultAudioSource
@@ -84,6 +87,15 @@ FocusScope {
     property string wifiError: ""
     property bool wifiRefreshPending: false
     readonly property real detailScrollFactor: 2
+    readonly property var battery: UPower.displayDevice
+    readonly property int batteryPercent: battery ? Math.round(battery.percentage * 100) : 0
+    property date lastNotifTime: new Date()
+    onNotifItemsChanged: lastNotifTime = new Date()
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
 
     function clearAllNotifications() {
         const all = notifItems.slice();
@@ -327,6 +339,19 @@ FocusScope {
         return Math.round(Math.max(0, Math.min(1, value)) * 100);
     }
 
+    function wifiLevel(signal) {
+        const v = Number(signal);
+        if (!Number.isFinite(v) || v <= 0)
+            return 0;
+        if (v >= 0.7)
+            return 3;
+        if (v >= 0.4)
+            return 2;
+        if (v >= 0.15)
+            return 1;
+        return 0;
+    }
+
     function wifiSignalIcon(signal) {
         const strength = Number(signal);
         if (!Number.isFinite(strength))
@@ -365,6 +390,10 @@ FocusScope {
         objects: root.audioSources
     }
 
+    PwObjectTracker {
+        objects: [root.source, root.sink].filter((n) => !!n)
+    }
+
     Timer {
         id: wifiRefreshTimer
         interval: 1000
@@ -375,6 +404,51 @@ FocusScope {
         id: bluetoothScanTimer
         interval: 12000
         onTriggered: root.stopBluetoothDiscovery()
+    }
+
+    property bool paMuted: false
+    property real paVolume: 0
+    property string paDefault: ""
+
+    function paRefresh() {
+        if (!paProc.running)
+            paProc.running = true;
+    }
+
+    function paRun(args) {
+        Quickshell.execDetached(["pactl"].concat(args));
+        paAfterTimer.restart();
+    }
+
+    Process {
+        id: paProc
+
+        command: ["sh", "-c", "pactl get-source-mute @DEFAULT_SOURCE@; pactl get-source-volume @DEFAULT_SOURCE@; pactl get-default-source"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.paMuted = /Mute: yes/.test(text);
+                const paLines = text.trim().split(String.fromCharCode(10));
+                root.paDefault = paLines[paLines.length - 1];
+                const m = text.match(/(\d+)%/);
+                root.paVolume = m ? Math.min(1, parseInt(m[1]) / 100) : 0;
+            }
+        }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.expandedSection === "output"
+        triggeredOnStart: true
+        onTriggered: root.paRefresh()
+    }
+
+    Timer {
+        id: paAfterTimer
+
+        interval: 200
+        onTriggered: root.paRefresh()
     }
 
     Timer {
@@ -428,6 +502,8 @@ FocusScope {
         id: tile
 
         property string icon: ""
+        property int level: 3
+        property bool searching: false
         property string title: ""
         property string subtitle: ""
         property bool active: false
@@ -437,9 +513,9 @@ FocusScope {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radiusCard
-            color: Qt.darker(Theme.cardColor, 1.35)
-            border.width: 1
+            radius: 16
+            color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
+            border.width: 0
             border.color: Theme.cardBorder
         }
 
@@ -457,7 +533,7 @@ FocusScope {
             width: 38
             height: 38
             radius: 19
-            color: tile.active ? Theme.primary : Qt.rgba(1, 1, 1, 0.08)
+            color: tile.active ? Theme.primary : Qt.rgba(1, 1, 1, 0.12)
 
             Behavior on color {
                 ColorAnimation {
@@ -465,12 +541,13 @@ FocusScope {
                 }
             }
 
-            ShellText {
+            VectorIcon {
                 anchors.centerIn: parent
-                text: tile.icon
-                font.family: Theme.iconFontFamily
+                name: tile.icon
+                level: tile.level
+                searching: tile.searching
                 color: tile.active ? Theme.bgDim : Theme.muted
-                font.pixelSize: 17
+                size: tile.icon === "bluetooth" ? 18 : 22
             }
 
             MouseArea {
@@ -494,7 +571,7 @@ FocusScope {
                 text: tile.title
                 color: Theme.foreground
                 font.pixelSize: 13
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
             }
 
             ShellText {
@@ -502,7 +579,7 @@ FocusScope {
                 elide: Text.ElideRight
                 text: tile.subtitle
                 color: Theme.muted
-                font.pixelSize: 11
+                font.pixelSize: 12
             }
         }
     }
@@ -521,7 +598,7 @@ FocusScope {
         Rectangle {
             anchors.fill: parent
             radius: width / 2
-            color: btn.active ? Theme.primary : Qt.darker(Theme.cardColor, 1.35)
+            color: btn.active ? Theme.primary : (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
             border.width: btn.active ? 0 : 1
             border.color: Theme.cardBorder
 
@@ -554,25 +631,28 @@ FocusScope {
         property string icon: ""
         property string trailing: ""
         property real value: 0
+        property bool muted: false
+        property color fillColor: muted ? Qt.alpha(Theme.primary, 0.35) : Theme.primary
+        property color iconColor: muted ? Theme.foreground : Theme.bgDim
 
         signal moved(real newValue)
         signal trailingClicked()
+        signal iconClicked()
 
-        height: 78
+        height: 66
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radiusCard
-            color: Qt.darker(Theme.cardColor, 1.35)
-            border.width: 1
-            border.color: Theme.cardBorder
+            radius: 22
+            antialiasing: true
+            color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
         }
 
         ShellText {
             anchors.left: parent.left
             anchors.leftMargin: 14
             anchors.top: parent.top
-            anchors.topMargin: 10
+            anchors.topMargin: 8
             text: card.label
             color: Theme.muted
             font.pixelSize: 11
@@ -581,19 +661,24 @@ FocusScope {
 
         Item {
             anchors.right: parent.right
-            anchors.top: parent.top
             anchors.rightMargin: 10
-            anchors.topMargin: 6
-            width: 24
-            height: 20
+            anchors.top: parent.top
+            anchors.topMargin: 8
+            width: 18
+            height: 18
             visible: card.trailing.length > 0
 
-            ShellText {
+            Rectangle {
+                anchors.fill: parent
+                radius: 9
+                color: Qt.rgba(1, 1, 1, 0.08)
+            }
+
+            VectorIcon {
                 anchors.centerIn: parent
-                text: card.trailing
-                font.family: Theme.iconFontFamily
+                name: card.trailing
                 color: Theme.muted
-                font.pixelSize: 13
+                size: 12
             }
 
             MouseArea {
@@ -611,45 +696,65 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.leftMargin: 10
             anchors.rightMargin: 10
-            anchors.bottomMargin: 10
-            height: 34
+            anchors.bottomMargin: 8
+            height: 24
             radius: height / 2
-            color: Qt.rgba(1, 1, 1, 0.07)
+            antialiasing: true
+            color: Qt.rgba(1, 1, 1, 0.10)
             clip: true
 
             Rectangle {
-                width: Math.max(parent.height, parent.width * Math.max(0, Math.min(1, card.value)))
+                width: Math.max(card.icon.length > 0 ? 32 : parent.height,
+                                parent.width * Math.max(0, Math.min(1, card.value)))
                 height: parent.height
                 radius: height / 2
-                color: Theme.primary
+                antialiasing: true
+                color: card.fillColor
 
                 Behavior on width {
                     SpringAnim {}
                 }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.animationFast
+                    }
+                }
             }
 
-            ShellText {
+            VectorIcon {
                 anchors.left: parent.left
-                anchors.leftMargin: 12
+                anchors.leftMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
-                text: card.icon
-                font.family: Theme.iconFontFamily
-                color: Theme.bgDim
-                font.pixelSize: 16
+                visible: card.icon.length > 0
+                name: card.icon
+                value: card.value
+                color: card.iconColor
+                size: 16
             }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                enabled: root.expandedSection === ""
                 onPressed: (mouse) => card.moved(Math.max(0, Math.min(1, mouse.x / width)))
                 onPositionChanged: (mouse) => {
                     if (pressed)
                         card.moved(Math.max(0, Math.min(1, mouse.x / width)));
                 }
             }
+
+            MouseArea {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 32
+                visible: card.icon.length > 0
+                cursorShape: Qt.PointingHandCursor
+                onClicked: card.iconClicked()
+            }
         }
     }
+
 
     Column {
         id: content
@@ -657,175 +762,92 @@ FocusScope {
         spacing: 10
 
         Item {
-            id: topBlock
-
-            readonly property real mediaWidth: 3 * 56 + 2 * 8
             width: parent.width
-            height: 120
+            height: 24
 
-            Column {
+            ShellText {
                 anchors.left: parent.left
-                anchors.top: parent.top
-                width: parent.width - topBlock.mediaWidth - 8
-                spacing: 8
-
-                InfoTile {
-                    width: parent.width
-                    height: 56
-                    icon: "\uDB82\uDD28"
-                    title: "Wi-Fi"
-                    subtitle: root.connectedWifi ? root.connectedWifi.name : (Networking.wifiEnabled ? "Not connected" : "Off")
-                    active: Networking.wifiEnabled
-                    onClicked: root.toggleSection("wifi")
-                    onIconClicked: root.toggleWifi()
-                }
-
-                InfoTile {
-                    width: parent.width
-                    height: 56
-                    icon: "\uDB80\uDCAF"
-                    title: "Bluetooth"
-                    subtitle: root.connectedDevices.length > 0 ? root.connectedDevices[0].name : (root.adapter && root.adapter.enabled ? "On" : "Off")
-                    active: !!(root.adapter && root.adapter.enabled)
-                    onClicked: root.toggleSection("bluetooth")
-                    onIconClicked: root.toggleBluetooth()
-                }
+                anchors.leftMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
+                text: Qt.formatTime(clock.date, "HH:mm")
+                color: Theme.foreground
+                font.pixelSize: 13
+                font.weight: Font.Bold
             }
 
-            ClippingRectangle {
-                id: mediaTile
+            Row {
                 anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: topBlock.mediaWidth
-                radius: Theme.radiusCard
-                color: Qt.darker(Theme.cardColor, 1.35)
-                border.width: 1
-                border.color: Theme.cardBorder
+                anchors.rightMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 5
 
-                Image {
-                    id: mediaArt
-                    anchors.fill: parent
-                    source: root.player ? root.player.trackArtUrl : ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    visible: status === Image.Ready
-                    opacity: 0.4
+                ShellText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: (UPower.onBattery ? "On battery" : "Plugged in") + " · " + root.batteryPercent + "%"
+                    color: Theme.muted
+                    font.pixelSize: 11
                 }
 
-                Rectangle {
-                    anchors.fill: parent
-                    visible: mediaArt.status === Image.Ready
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.15) }
-                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.75) }
-                    }
-                }
-
-                Rectangle {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 16
-                    width: 40
-                    height: 40
-                    radius: 20
-                    color: root.player && root.player.isPlaying ? Theme.primary : Qt.rgba(1, 1, 1, 0.08)
-
-                    ShellText {
-                        anchors.centerIn: parent
-                        text: root.player ? (root.player.isPlaying ? "\uDB80\uDFE4" : "\uDB81\uDC0A") : "\uDB81\uDF5A"
-                        font.family: Theme.iconFontFamily
-                        color: root.player && root.player.isPlaying ? Theme.bgDim : Theme.muted
-                        font.pixelSize: 18
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (root.player && root.player.canTogglePlaying)
-                                root.player.togglePlaying();
-                        }
-                    }
-                }
-
-                Column {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    anchors.margins: 10
-                    spacing: 1
-
-                    ShellText {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        elide: Text.ElideRight
-                        text: root.player ? (root.player.trackTitle || "Unknown title") : "Not playing"
-                        color: Theme.foreground
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    ShellText {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        elide: Text.ElideRight
-                        visible: text.length > 0
-                        text: root.player ? (root.player.trackArtist || "") : ""
-                        color: Theme.muted
-                        font.pixelSize: 10
-                    }
+                BatteryGlyph {
+                    anchors.verticalCenter: parent.verticalCenter
+                    level: root.batteryPercent
+                    charging: !UPower.onBattery
                 }
             }
         }
 
-        Row {
+        Grid {
+            id: toggleGrid
             width: parent.width
-            height: 56
+            columns: 2
             spacing: 8
+            readonly property real tileW: (width - spacing) / 2
 
-            // Microphone selector
             InfoTile {
-                width: parent.width - 3 * 56 - 3 * 8
+                width: toggleGrid.tileW
                 height: 56
-                icon: root.source && root.source.audio && root.source.audio.muted
-                      ? "\uDB80\uDF6D" : "\uDB80\uDF6C"
-                title: "Microphone"
-                subtitle: root.source
-                          ? (root.source.description || root.source.name || "Default input")
-                          : "No input available"
-                active: !!(root.source && root.source.audio && !root.source.audio.muted)
-
-                // Tile opens the detected microphone list
-                onClicked: root.toggleSection("audio")
-
-                // Microphone icon toggles mute
-                onIconClicked: root.toggleAudio()
+                icon: Networking.wifiEnabled ? "wifi" : "wifi_off"
+                level: root.wifiLevel(root.connectedWifi ? root.connectedWifi.signalStrength : 0)
+                searching: Networking.wifiEnabled && !root.connectedWifi
+                title: "Wi-Fi"
+                subtitle: root.connectedWifi ? root.connectedWifi.name : (Networking.wifiEnabled ? "Not connected" : "Off")
+                active: Networking.wifiEnabled
+                onClicked: root.toggleSection("wifi")
+                onIconClicked: root.toggleWifi()
             }
 
-            // Night Light
-            CircleButton {
-                icon: "\uDB81\uDD94"
-                active: Backend.nightLightStatus === "on"
-                opacity: Backend.nightLightStatus === "unavailable" ? 0.4 : 1
-                onClicked: {
-                    if (Backend.nightLightStatus !== "unavailable")
-                        Backend.toggleNightLight();
-                }
-            }
-
-            // Peace moved into the old microphone button position
-            CircleButton {
-                icon: "\uDB80\uDC9B"
+            InfoTile {
+                width: toggleGrid.tileW
+                height: 56
+                icon: "focus"
+                title: "Focus"
+                subtitle: ShellState.peaceMode ? "On" : "Off"
                 active: ShellState.peaceMode
                 onClicked: ShellState.togglePeaceMode()
+                onIconClicked: ShellState.togglePeaceMode()
             }
 
-            // Power
-            CircleButton {
-                icon: "\uDB81\uDC25"
-                active: false
-                onClicked: ShellState.show("power")
+            InfoTile {
+                width: toggleGrid.tileW
+                height: 56
+                icon: "bluetooth"
+                title: "Bluetooth"
+                subtitle: root.connectedDevices.length > 0 ? root.connectedDevices[0].name : (root.adapter && root.adapter.enabled ? "On" : "Off")
+                active: !!(root.adapter && root.adapter.enabled)
+                onClicked: root.toggleSection("bluetooth")
+                onIconClicked: root.toggleBluetooth()
+            }
+
+            InfoTile {
+                width: toggleGrid.tileW
+                height: 56
+                icon: "moon"
+                title: "Night Light"
+                subtitle: Backend.nightLightStatus === "on" ? "On" : (Backend.nightLightStatus === "unavailable" ? "Unavailable" : "Off")
+                active: Backend.nightLightStatus === "on"
+                opacity: Backend.nightLightStatus === "unavailable" ? 0.4 : 1
+                onClicked: { if (Backend.nightLightStatus !== "unavailable") Backend.toggleNightLight(); }
+                onIconClicked: { if (Backend.nightLightStatus !== "unavailable") Backend.toggleNightLight(); }
             }
         }
 
@@ -833,19 +855,21 @@ FocusScope {
             id: displayCard
             width: parent.width
             label: "Display"
-            icon: "\uDB80\uDCE0"
-            trailing: "\uDB80\uDD40"
+            icon: "sun"
+            trailing: "chevron"
             value: Backend.brightness / 100
             onMoved: (val) => Backend.setBrightness(val * 100)
-            onTrailingClicked: root.toggleSection("nightlight")
+            onTrailingClicked: root.toggleSection("display")
         }
 
         SliderCard {
             width: parent.width
             label: "Sound"
-            icon: root.sink && root.sink.audio && root.sink.audio.muted ? "\uDB81\uDF5F" : "\uDB81\uDD7E"
-            trailing: "\uDB80\uDC54"
-            value: root.sink && root.sink.audio ? (root.sink.audio.muted ? 0 : root.sink.audio.volume) : 0
+            muted: !!(root.sink && root.sink.audio && root.sink.audio.muted)
+            icon: muted ? "mute" : "volume"
+            trailing: "chevron"
+            value: root.sink && root.sink.audio ? root.sink.audio.volume : 0
+            onIconClicked: root.toggleOutputAudio()
             onMoved: (val) => {
                 if (root.sink && root.sink.audio) {
                     root.sink.audio.volume = val;
@@ -858,9 +882,9 @@ FocusScope {
         // ── Notifications Background Card ──
         Rectangle {
             width: parent.width
-            height: root.notifItems.length > 0 ? (50 + Math.min(2, root.notifItems.length) * 74) : 140
+            height: Math.max(170, root.notifItems.length > 0 ? (50 + Math.min(2, root.notifItems.length) * 74) : 170)
             radius: Theme.radiusCard
-            color: Qt.darker(Theme.cardColor, 1.35)
+            color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
             border.width: 1
             border.color: Theme.cardBorder
             clip: true
@@ -873,6 +897,7 @@ FocusScope {
                 Item {
                     width: parent.width
                     height: 16
+                    visible: root.notifItems.length > 0
 
                     ShellText {
                         anchors.left: parent.left
@@ -903,15 +928,43 @@ FocusScope {
 
                 Item {
                     width: parent.width
-                    height: parent.height - 28
+                    height: parent.height - (root.notifItems.length > 0 ? 28 : 0)
 
-                    // Centered beautifully in the remaining space
-                    ShellText {
+                    Column {
                         anchors.centerIn: parent
                         visible: root.notifItems.length === 0
-                        text: "No notifications"
-                        color: Theme.muted
-                        font.pixelSize: 12
+                        spacing: 12
+
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: 40
+                            height: 40
+                            radius: 20
+                            color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
+
+                            ShellText {
+                                anchors.centerIn: parent
+                                text: "\uDB80\uDC9A"
+                                font.family: Theme.iconFontFamily
+                                color: Theme.muted
+                                font.pixelSize: 18
+                            }
+                        }
+
+                        ShellText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "All caught up"
+                            color: Theme.foreground
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
+                        }
+
+                        ShellText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "Nothing new since " + Qt.formatTime(root.lastNotifTime, "HH:mm")
+                            color: Theme.muted
+                            font.pixelSize: 11
+                        }
                     }
 
                     ListView {
@@ -919,7 +972,7 @@ FocusScope {
                         anchors.fill: parent
                         visible: root.notifItems.length > 0
                         clip: true
-                        spacing: 6
+                        spacing: 12
                         model: root.notifItems
 
                         delegate: Rectangle {
@@ -930,7 +983,9 @@ FocusScope {
                             width: inlineNotifList.width
                             height: 68
                             radius: Theme.radiusCard
-                            color: Theme.bg1
+                            color: (Theme.isLight
+                                ? Qt.darker(Theme.cardColor, 1.1)
+                                : Qt.rgba(1, 1, 1, 0.06))
                             border.width: 1
                             border.color: critical ? Theme.red : Theme.cardBorder
 
@@ -942,7 +997,7 @@ FocusScope {
                                 width: 34
                                 height: 34
                                 radius: 17
-                                color: Qt.rgba(1, 1, 1, 0.07)
+                                color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : Qt.rgba(1, 1, 1, 0.06))
 
                                 ShellText {
                                     anchors.centerIn: parent
@@ -1024,7 +1079,7 @@ FocusScope {
 
 
 
-    // ── Expandable Detail Overlay (Wi-Fi, Bluetooth, Audio, Night Light) ──
+    // ── Expandable Detail Overlay (Wi-Fi, Bluetooth, Audio, Display) ──
     Rectangle {
         id: devicePicker
 
@@ -1032,11 +1087,11 @@ FocusScope {
         readonly property bool wifiMode: root.displayedSection === "wifi"
         readonly property bool bluetoothMode: root.displayedSection === "bluetooth"
         readonly property bool audioMode: root.displayedSection === "audio" || root.displayedSection === "output"
-        readonly property bool nightLightMode: root.displayedSection === "nightlight"
+        readonly property bool displayMode: root.displayedSection === "display"
         readonly property bool radioMode: wifiMode || bluetoothMode
         readonly property bool radioOn: wifiMode ? Networking.wifiEnabled : !!(root.adapter && root.adapter.enabled)
         readonly property real availableHeight: root.height - y
-        readonly property string titleText: wifiMode ? "Wi-Fi" : (bluetoothMode ? "Bluetooth" : (root.displayedSection === "audio" ? "Audio input" : (root.displayedSection === "output" ? "Audio output" : (nightLightMode ? "Night Light" : ""))))
+        readonly property string titleText: wifiMode ? "Wi-Fi" : (bluetoothMode ? "Bluetooth" : (root.displayedSection === "audio" ? "Audio input" : (root.displayedSection === "output" ? "Audio output" : (displayMode ? "Display" : ""))))
         readonly property string subtitleText: {
             if (wifiMode) {
                 if (root.wifiError !== "")
@@ -1054,25 +1109,20 @@ FocusScope {
                     return "Connected to " + root.connectedDevices[0].name;
                 return root.adapter.discovering ? "Searching…" : "Not connected";
             }
-            if (nightLightMode)
-                return ShellState.nightLightTemperature + " K";
+            if (displayMode)
+                return "Night Light · " + ShellState.nightLightTemperature + " K";
             if (audioMode)
                 return "Choose a device";
             return "";
         }
 
         x: 0
-        y: {
-            displayCard.y; displayCard.height; content.y; content.height; root.height;
-            if (!nightLightMode)
-                return 0;
-            return displayCard.mapToItem(root, 0, displayCard.height + 8).y;
-        }
+        y: 0
         z: 100
         width: Math.round(root.width)
-        height: Math.round(nightLightMode ? Math.min(112 + screenSection.height, availableHeight) : availableHeight)
+        height: Math.round(availableHeight)
         radius: Theme.radiusCard
-        color: Qt.darker(Theme.cardColor, 1.35)
+        color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : "#0f0f0f")
         antialiasing: true
         clip: true
         enabled: root.expandedSection !== ""
@@ -1088,8 +1138,8 @@ FocusScope {
         // Fades the list out at the bottom instead of slicing a row
         Rectangle {
             id: pickerFade
-            readonly property color base: Qt.darker(Theme.cardColor, 1.35)
-            visible: !devicePicker.nightLightMode
+            readonly property color base: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : "#0f0f0f")
+            visible: !devicePicker.displayMode
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
@@ -1137,7 +1187,7 @@ FocusScope {
                 Rectangle {
                     anchors.fill: parent
                     radius: 15
-                    color: backPointer.containsMouse ? Theme.bg2 : Theme.bg1
+                    color: backPointer.containsMouse ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(1, 1, 1, 0.08)
                     border.width: 1
                     border.color: Theme.cardBorder
                 }
@@ -1208,7 +1258,7 @@ FocusScope {
                 Rectangle {
                     anchors.fill: parent
                     radius: 15
-                    color: refreshPointer.containsMouse ? Theme.bg2 : Theme.bg1
+                    color: refreshPointer.containsMouse ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(1, 1, 1, 0.08)
                     border.width: 1
                     border.color: Theme.cardBorder
                 }
@@ -1242,8 +1292,8 @@ FocusScope {
 
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                width: 42
-                height: 24
+                width: 38
+                height: 22
                 visible: devicePicker.radioMode
 
                 function flip() {
@@ -1256,7 +1306,7 @@ FocusScope {
                 Rectangle {
                     anchors.fill: parent
                     radius: height / 2
-                    color: toggleSwitch.checked ? Theme.primary : Theme.bg2
+                    color: toggleSwitch.checked ? Theme.primary : Qt.rgba(1, 1, 1, 0.12)
 
                     Behavior on color {
                         ColorAnimation { duration: Theme.animationFast }
@@ -1266,9 +1316,9 @@ FocusScope {
                 Rectangle {
                     y: 3
                     x: toggleSwitch.checked ? parent.width - width - 3 : 3
-                    width: 18
-                    height: 18
-                    radius: 9
+                    width: 16
+                    height: 16
+                    radius: 8
                     color: toggleSwitch.checked ? Theme.bgDim : Theme.muted
 
                     Behavior on x {
@@ -1294,7 +1344,7 @@ FocusScope {
             anchors.topMargin: 4
             height: 1
             color: Theme.cardBorder
-            visible: !devicePicker.nightLightMode
+            visible: !devicePicker.displayMode
         }
 
         StyledSlider {
@@ -1305,10 +1355,10 @@ FocusScope {
             anchors.leftMargin: 12
             anchors.rightMargin: 12
             anchors.topMargin: 10
-            visible: devicePicker.nightLightMode
+            visible: false
             enabled: visible
             filled: true
-            icon: "\uDB81\uDD94"
+            icon: "moon"
             value: (ShellState.nightLightTemperature - 2500) / 3500
             onMoved: (value) => Backend.setNightLightTemperature(2500 + value * 3500)
         }
@@ -1316,7 +1366,7 @@ FocusScope {
         Column {
             id: screenSection
 
-            readonly property bool shown: devicePicker.nightLightMode
+            readonly property bool shown: false
 
             anchors.left: parent.left
             anchors.right: parent.right
@@ -1324,7 +1374,7 @@ FocusScope {
             anchors.leftMargin: 12
             anchors.rightMargin: 12
             anchors.topMargin: 12
-            spacing: 6
+            spacing: 12
             visible: shown
             height: shown ? implicitHeight + 12 : 0
 
@@ -1351,6 +1401,18 @@ FocusScope {
             }
         }
 
+        DisplayContent {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: headerDivider.bottom
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 12
+            anchors.bottomMargin: 12
+            visible: devicePicker.displayMode
+        }
+
         // Radio turned off (Wi-Fi / Bluetooth)
         Item {
             id: offState
@@ -1369,14 +1431,13 @@ FocusScope {
                     width: 56
                     height: 56
                     radius: 28
-                    color: Qt.rgba(1, 1, 1, 0.06)
+                    color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : "#0f0f0f")
 
-                    ShellText {
+                    VectorIcon {
                         anchors.centerIn: parent
-                        text: devicePicker.wifiMode ? "\uDB82\uDD28" : "\uDB80\uDCAF"
-                        font.family: Theme.iconFontFamily
+                        name: devicePicker.wifiMode ? "wifi_off" : "bluetooth"
                         color: Theme.muted
-                        font.pixelSize: 24
+                        size: devicePicker.wifiMode ? 24 : 20
                     }
                 }
 
@@ -1435,7 +1496,7 @@ FocusScope {
             anchors.topMargin: 12
             visible: root.displayedSection === "audio"
             clip: true
-            spacing: 6
+            spacing: 12
             model: root.audioSources
 
             header: Item {
@@ -1516,8 +1577,96 @@ FocusScope {
             anchors.topMargin: 12
             visible: root.displayedSection === "output"
             clip: true
-            spacing: 6
+            spacing: 12
             model: root.audioSinks
+
+            header: Item {
+                width: outputAudioList.width
+                height: 26
+
+                SectionLabel {
+                    width: parent.width
+                    text: "Output"
+                }
+            }
+
+            footer: Column {
+                id: inputFooter
+
+                readonly property bool micMuted: root.paMuted
+                property bool fixing: false
+
+                width: outputAudioList.width
+                topPadding: 16
+                spacing: 12
+
+                Timer {
+                    id: inputFixTimer
+
+                    interval: 15000
+                    onTriggered: inputFooter.fixing = false
+                }
+
+                SectionLabel {
+                    width: outputAudioList.width
+                    text: "Input"
+                }
+
+                NetRow {
+                    width: outputAudioList.width
+                    icon: inputFooter.micMuted ? "\uDB80\uDF6D" : "\uDB80\uDF6C"
+                    title: "Microphone"
+                    subtitle: inputFooter.micMuted ? "Muted" : "On"
+                    active: !inputFooter.micMuted
+                    actionText: inputFooter.micMuted ? "Unmute" : "Mute"
+                    onClicked: root.paRun(["set-source-mute", "@DEFAULT_SOURCE@", "toggle"])
+                }
+
+                SliderCard {
+                    width: outputAudioList.width
+                    label: "Input volume"
+                    muted: inputFooter.micMuted
+                    value: root.paVolume
+                    onMoved: (val) => {
+                        root.paVolume = val;
+                        root.paRun(["set-source-volume", "@DEFAULT_SOURCE@", Math.round(val * 100) + "%"]);
+                    }
+                }
+
+                Repeater {
+                    model: root.audioSources
+
+                    delegate: NetRow {
+                        required property var modelData
+                        readonly property bool isDefault: modelData.name === root.paDefault
+
+                        width: outputAudioList.width
+                        icon: "\uDB80\uDF6C"
+                        title: modelData.description || modelData.nickname || modelData.name
+                        subtitle: modelData.nickname && modelData.nickname !== title ? modelData.nickname : "Audio input"
+                        active: isDefault
+                        actionText: isDefault ? "Selected" : "Select"
+                        onClicked: root.paRun(["set-default-source", modelData.name])
+                    }
+                }
+
+                NetRow {
+                    width: outputAudioList.width
+                    icon: "\uDB81\uDC50"
+                    title: "Fix microphone"
+                    subtitle: inputFooter.fixing ? "Reconnecting headset…" : "Reconnect headset and switch to mic mode"
+                    active: false
+                    actionText: inputFooter.fixing ? "Working" : "Run"
+                    onClicked: {
+                        if (inputFooter.fixing)
+                            return;
+
+                        inputFooter.fixing = true;
+                        inputFixTimer.restart();
+                        Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/mic-fix"]);
+                    }
+                }
+            }
 
             delegate: NetRow {
                 required property var modelData
@@ -1574,7 +1723,7 @@ FocusScope {
             Column {
                 id: wifiColumn
                 width: wifiLists.width
-                spacing: 6
+                spacing: 12
 
                 SectionLabel {
                     width: parent.width
@@ -1640,7 +1789,7 @@ FocusScope {
                 anchors.topMargin: 8
                 height: 32
                 radius: 10
-                color: Qt.rgba(1, 1, 1, 0.06)
+                color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : "#0f0f0f")
 
                 TextInput {
                     id: wifiPasswordInput
@@ -1741,7 +1890,7 @@ FocusScope {
             Column {
                 id: bluetoothColumn
                 width: bluetoothLists.width
-                spacing: 6
+                spacing: 12
 
                 SectionLabel {
                     width: parent.width

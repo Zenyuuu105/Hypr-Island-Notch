@@ -1,0 +1,5 @@
+#!/bin/sh
+# Select an area, save it, copy it to the clipboard
+f="$HOME/Pictures/Screenshots/$(date +%F_%H-%M-%S).png"
+region=$(slurp) || exit 0
+grim -g "$region" "$f" && wl-copy < "$f" && notify-send -i "$f" "Screenshot saved" "$f"

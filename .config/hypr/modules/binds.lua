@@ -11,7 +11,7 @@ local mainMod = "SUPER"
 
 -- Super key: toggle Dotarch app launcher
 hl.bind(
-    "SUPER + SUPER_L",
+    "SUPER_L",
     hl.dsp.exec_cmd("qs --path " .. dotarchPath .. " ipc call notch toggle launcher"),
     { release = true }
 )
@@ -148,7 +148,7 @@ hl.bind(
 hl.bind(
     mainMod .. " + M",
     hl.dsp.exec_cmd(
-        "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"
+        "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"
     )
 )
 

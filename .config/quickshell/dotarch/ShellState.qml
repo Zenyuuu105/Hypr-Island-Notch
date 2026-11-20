@@ -17,7 +17,8 @@ Singleton {
         "theme": 520,
         "wallpaper": 520,
         "capture": 395,
-        "power": 380,
+        "power": 360,
+        "display": 456,
         "notifications": 420,
         "calendar": 340
     })
@@ -30,7 +31,8 @@ Singleton {
         "theme": 158,
         "wallpaper": 160,
         "capture": 208,
-        "power": 56,
+        "power": 60,
+        "display": 60,
         "notifications": 330,
         "calendar": 268
     })

@@ -290,6 +290,17 @@ deploy_local_scripts() {
     fi
 }
 
+check_fonts() {
+    local families
+
+    command -v fc-list >/dev/null 2>&1 || return 0
+    families="$(fc-list : family 2>/dev/null || true)"
+
+    if ! grep -qi "SF Compact" <<<"$families"; then
+        warn "SF Compact fonts are not installed (the notch uses SF Compact Text and Display). Apple does not allow redistributing them, so put them in ~/.local/share/fonts/SF-Compact/ and run: fc-cache -f. Until then the notch falls back to a default font."
+    fi
+}
+
 enable_services() {
     say "Enabling system services"
     run sudo systemctl enable --now NetworkManager.service
@@ -375,6 +386,9 @@ if (( DEPLOY )); then
         run mkdir -p "$HOME/Pictures"
         run cp -an "$REPO_DIR/Pictures/." "$HOME/Pictures/"
     fi
+
+    # Fonts the notch depends on but the repo cannot ship
+    check_fonts
 
     # Home-directory portability
     # (searches inside the deployed folders, not just loose files)

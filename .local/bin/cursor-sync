@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+GTK_SETTINGS="$HOME/.config/gtk-3.0/settings.ini"
+
+apply_cursor() {
+    [[ -f "$GTK_SETTINGS" ]] || return
+
+    theme=$(sed -n 's/^gtk-cursor-theme-name=//p' "$GTK_SETTINGS" | tail -n1 | tr -d '"')
+    size=$(sed -n 's/^gtk-cursor-theme-size=//p' "$GTK_SETTINGS" | tail -n1 | tr -d '"')
+
+    [[ -n "$theme" ]] || return
+    [[ "$size" =~ ^[0-9]+$ ]] || size=36
+
+    hyprctl setcursor "$theme" "$size" >/dev/null 2>&1
+}
+
+apply_cursor
+
+while inotifywait -q -e close_write,moved_to,create \
+    "$HOME/.config/gtk-3.0" >/dev/null 2>&1; do
+    sleep 0.2
+    apply_cursor
+done

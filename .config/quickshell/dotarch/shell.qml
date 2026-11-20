@@ -23,7 +23,7 @@ ShellRoot {
             if (ShellState.peaceMode)
                 return ;
             ShellState.presentNotification(notification);
-
+            
             // Create a native QML timer to close the notification after 5000ms
             var timer = Qt.createQmlObject('import QtQuick; Timer { interval: 5000; running: true; property var n; onTriggered: { if (n) n.close(); destroy(); } }', notificationServer, "autoCloseTimer");
             timer.n = notification;
@@ -161,7 +161,7 @@ ShellRoot {
         function open(): void   { settingsWin.visible = true }
         function close(): void  { settingsWin.visible = false }
     }
-
+    
     DesktopSettingsWindow { id: desktopSettingsWin }
 
     IpcHandler {

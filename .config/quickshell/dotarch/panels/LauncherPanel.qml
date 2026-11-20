@@ -262,7 +262,7 @@ FocusScope {
                             text: modelData.genericName || modelData.comment || "Application"
                             elide: Text.ElideRight
                             color: Theme.muted
-                            font.pixelSize: 11
+                            font.pixelSize: 13
                         }
                     }
                 }

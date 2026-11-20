@@ -131,7 +131,7 @@ FocusScope {
                         ? (Backend.recording ? "Recording in progress" : "Ready to record")
                         : "Capture your screen"
                     color: root.recordingMode && Backend.recording ? Theme.red : Theme.muted
-                    font.pixelSize: 10
+                    font.pixelSize: 12
                     font.weight: Font.Medium
                 }
             }
@@ -212,7 +212,7 @@ FocusScope {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: kindButton.modelData.title
                                     color: kindButton.selected ? Theme.foreground : Theme.muted
-                                    font.pixelSize: 10
+                                    font.pixelSize: 12
                                     font.weight: kindButton.selected ? Font.Bold : Font.Medium
                                 }
                             }
@@ -442,7 +442,7 @@ FocusScope {
                     ? (root.source ? (root.source.description || "Default microphone") : "No microphone detected")
                     : root.currentMode.description
                 color: Theme.muted
-                font.pixelSize: 10
+                font.pixelSize: 12
                 elide: Text.ElideRight
             }
         }
@@ -543,7 +543,7 @@ FocusScope {
                             ShellText {
                                 text: targetButton.modelData.hint
                                 color: Theme.mutedDark
-                                font.pixelSize: 9
+                                font.pixelSize: 11
                             }
                         }
 
@@ -621,7 +621,7 @@ FocusScope {
                         text: !root.source ? "No input device detected"
                             : (root.source.audio && root.source.audio.muted ? "Audio is muted" : (root.source.description || "Default input"))
                         color: Theme.muted
-                        font.pixelSize: 9
+                        font.pixelSize: 11
                         elide: Text.ElideRight
                     }
                 }
