@@ -1,5 +1,6 @@
 import QtQuick
 import qs
+import qs.panels
 import ".."
 
 FocusScope {
@@ -20,7 +21,7 @@ FocusScope {
         moved(Math.max(0, Math.min(1, rawValue)));
     }
 
-    implicitHeight: 40
+    implicitHeight: root.filled ? 24 : 40
     activeFocusOnTab: true
     Keys.onLeftPressed: {
         moved(Math.max(0, value - 0.05));
@@ -34,8 +35,8 @@ FocusScope {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: root.filled ? Theme.bg2 : Theme.bg0
-        border.width: root.filled ? (root.activeFocus ? 2 : 0) : 1
+        color: root.filled ? "transparent" : Theme.bg0
+        border.width: root.filled ? 0 : (root.activeFocus ? 2 : 1)
         border.color: root.activeFocus ? Theme.primary : Theme.bg2
 
         Behavior on border.color {
@@ -45,6 +46,7 @@ FocusScope {
 
     ShellText {
         z: 1
+        visible: !root.filled
         anchors.left: parent.left
         anchors.leftMargin: 14
         anchors.verticalCenter: parent.verticalCenter
@@ -52,6 +54,17 @@ FocusScope {
         color: root.filled ? Theme.bgDim : (root.enabled ? Theme.muted : Theme.mutedDark)
         font.pixelSize: 19
         font.weight: Font.Bold
+    }
+
+    VectorIcon {
+        z: 1
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        visible: root.filled && root.icon.length > 0
+        name: root.icon
+        color: Theme.bgDim
+        size: 16
     }
 
     Rectangle {
@@ -102,8 +115,14 @@ FocusScope {
         id: filledTrack
 
         anchors.fill: parent
-        anchors.margins: 4
         visible: root.filled
+
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            antialiasing: true
+            color: Qt.rgba(1, 1, 1, 0.10)
+        }
 
         Rectangle {
             id: filledBar
@@ -111,8 +130,10 @@ FocusScope {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: Math.max(height, parent.width * Math.max(0, Math.min(1, root.value)))
+            width: Math.max(root.icon.length > 0 ? 32 : height,
+                            parent.width * Math.max(0, Math.min(1, root.value)))
             radius: height / 2
+            antialiasing: true
             color: Theme.primary
         }
     }
