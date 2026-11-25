@@ -1,0 +1,32 @@
+{
+  "name": "Earthlight",
+  "slug": "iris-gemini-generated-image-9szn899szn899szn",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#303b3b",
+    "bg0": "#404f4f",
+    "bg1": "#506263",
+    "bg2": "#5a6b6c",
+    "bg3": "#647575",
+    "bg4": "#6d7d7d",
+    "primary_container": "#5f645a",
+    "secondary_container": "#5e665a",
+    "foreground": "#d5c3ab",
+    "muted": "#a19a8b",
+    "muted_dark": "#838378",
+    "red": "#d7a5af",
+    "orange": "#d9c4a6",
+    "yellow": "#c9b982",
+    "green": "#95d09f",
+    "aqua": "#95cfd0",
+    "blue": "#a4b2d6",
+    "purple": "#d699b6",
+    "primary": "#ccae80"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "orange"
+  },
+  "generated": true
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Lagoon",
+  "slug": "iris-wallhaven-qrgdzq-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#343115",
+    "bg0": "#45411c",
+    "bg1": "#5f5926",
+    "bg2": "#726b36",
+    "bg3": "#847d46",
+    "bg4": "#948d53",
+    "primary_container": "#485b48",
+    "secondary_container": "#615925",
+    "foreground": "#e0ead9",
+    "muted": "#aaaf97",
+    "muted_dark": "#8b8d71",
+    "red": "#dca189",
+    "orange": "#cb7450",
+    "yellow": "#c4b046",
+    "green": "#95d095",
+    "aqua": "#89cca8",
+    "blue": "#54b7e3",
+    "purple": "#c895d0",
+    "primary": "#54b7e3"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

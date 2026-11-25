@@ -1,0 +1,32 @@
+{
+  "name": "Orchid",
+  "slug": "iris-wallhaven-yqkl97-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#311e3c",
+    "bg0": "#412850",
+    "bg1": "#543468",
+    "bg2": "#604073",
+    "bg3": "#6b4c7e",
+    "bg4": "#755787",
+    "primary_container": "#525574",
+    "secondary_container": "#63495a",
+    "foreground": "#90f6f2",
+    "muted": "#74aeb9",
+    "muted_dark": "#658599",
+    "red": "#ce7b73",
+    "orange": "#e69875",
+    "yellow": "#dbbc7f",
+    "green": "#9dd095",
+    "aqua": "#90f6f2",
+    "blue": "#95a7d0",
+    "purple": "#8b6b9e",
+    "primary": "#90f6f2"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "teal"
+  },
+  "generated": true
+}

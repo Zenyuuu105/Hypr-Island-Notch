@@ -1,0 +1,32 @@
+{
+  "name": "Indigo Reverie",
+  "slug": "iris-1378545",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#101250",
+    "bg0": "#16186b",
+    "bg1": "#1c1e88",
+    "bg2": "#2a2c90",
+    "bg3": "#383a97",
+    "bg4": "#44469e",
+    "primary_container": "#382581",
+    "secondary_container": "#3c4074",
+    "foreground": "#d597e8",
+    "muted": "#926bbc",
+    "muted_dark": "#6c51a3",
+    "red": "#de81a5",
+    "orange": "#e69875",
+    "yellow": "#c2d095",
+    "green": "#97d095",
+    "aqua": "#95d0c0",
+    "blue": "#95b8d0",
+    "purple": "#b195d0",
+    "primary": "#b253d0"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "magenta"
+  },
+  "generated": true
+}

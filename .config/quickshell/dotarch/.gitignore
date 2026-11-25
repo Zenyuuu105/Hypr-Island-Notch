@@ -17,3 +17,8 @@ backup-*/
 __pycache__/
 *.pyc
 todos.json
+# Local backups and generated state
+*.backup*
+*.kit-*
+state/
+.claude/

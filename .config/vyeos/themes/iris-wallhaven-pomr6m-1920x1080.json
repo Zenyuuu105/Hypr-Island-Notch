@@ -1,0 +1,32 @@
+{
+  "name": "Lime",
+  "slug": "iris-wallhaven-pomr6m-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#023169",
+    "bg0": "#03418c",
+    "bg1": "#0351af",
+    "bg2": "#1e61b1",
+    "bg3": "#3a70b3",
+    "bg4": "#517eb5",
+    "primary_container": "#1e5b7a",
+    "secondary_container": "#2a628c",
+    "foreground": "#d7dff0",
+    "muted": "#8da8cd",
+    "muted_dark": "#6288b9",
+    "red": "#d0c495",
+    "orange": "#c3b546",
+    "yellow": "#b5d98c",
+    "green": "#6fc17f",
+    "aqua": "#95c1d0",
+    "blue": "#5580b5",
+    "purple": "#ab9ed4",
+    "primary": "#7eb93c"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

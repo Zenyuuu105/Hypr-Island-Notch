@@ -47,6 +47,10 @@ PanelWindow {
 
     property real springOmega: 23
     property real springZeta: 0.78
+    property real springOmegaUp: 21
+    property real springZetaUp: 0.8
+    property real springOmegaDown: 24
+    property real springZetaDown: 0.95
 
     readonly property int contentPadding: 14
     readonly property bool attached: NotchSettings.cfg.shape === "notch"
@@ -68,7 +72,7 @@ PanelWindow {
     readonly property real batteryLevel: UPower.displayDevice ? UPower.displayDevice.percentage : 0
     readonly property bool batteryCharging: UPower.displayDevice && (!UPower.onBattery || UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.PendingCharge)
     readonly property int notifHeight: 66
-    readonly property int authHeight: authColumn.implicitHeight + 28
+    readonly property int authHeight: authColumn.implicitHeight + 32
     readonly property int compactHeight: ShellState.authActive ? authHeight : (ShellState.osdActive ? osdHeight : (ShellState.notifActive ? notifHeight : (ShellState.hovered ? hoverHeight : collapsedHeight)))
     readonly property int notifTimeout: 5000
     readonly property var hoverPlayer: {
@@ -123,6 +127,14 @@ PanelWindow {
     }
     readonly property real targetVisualWidth: baseWidth + cornerWing * 2
     readonly property real restWidth: NotchSettings.cfg.collapsedWidth > 0 ? NotchSettings.cfg.collapsedWidth : collapsedContentWidth
+    readonly property real hoverFinalW: NotchSettings.cfg.expandedWidth > 0 ? NotchSettings.cfg.expandedWidth : ShellState.targetWidth
+    readonly property real hoverContentW: Math.max(120, hoverFinalW - 36)
+    readonly property real restVisualW: restWidth + cornerWing * 2
+    readonly property real hoverVisualW: hoverFinalW + cornerWing * 2
+    readonly property bool hoverPhase: !closing && !panelWidthSettling && !ShellState.expanded && !ShellState.osdActive && !ShellState.notifActive && !ShellState.authActive
+    readonly property real hoverProg: hoverPhase && hoverProgressReady ? Math.max(0, Math.min(1, (wSpring.value - restVisualW) / Math.max(1, hoverVisualW - restVisualW))) : 0
+    readonly property real hoverReveal: 1
+    readonly property real pillReveal: 1
     readonly property real targetVisualHeight: ShellState.expanded ? panelContentHeight + requestedTopPadding + requestedBottomPadding : compactHeight
     readonly property real panelContentHeight: ShellState.expanded ? (ShellState.panel === "theme" ? themePanel.implicitHeight : ShellState.panel === "wallpaper" ? wallpaperPanel.implicitHeight : (ShellState.panel === "control" || ShellState.panel === "display") ? controlPanel.implicitHeight : (NotchSettings.cfg.panelHeight > 0 ? NotchSettings.cfg.panelHeight : Math.max(ShellState.panelHeights[ShellState.panel] || 0, requestedPanel ? requestedPanel.implicitHeight : 0))) : 0
     property bool contentRevealed: false
@@ -131,10 +143,19 @@ PanelWindow {
     onTargetVisualHeightChanged: { if (ShellState.expanded) { openH = targetVisualHeight; updateLock() } }
     onTargetVisualWidthChanged: { if (ShellState.expanded) { openW = targetVisualWidth; updateLock() } }
     property bool closing: false
+    property bool panelWidthSettling: false
+    property bool hoverProgressReady: false
     property real settle: 1
     function stag(d) { return Math.max(0, (settle - d) / (1 - d)) }
     readonly property bool settleTrigger: closing && remainMax < 0.5
-    onClosingChanged: { if (closing) settle = 0; else if (!settleAnim.running) settle = 1 }
+    onClosingChanged: {
+        if (closing) {
+            settle = 0;
+            panelWidthSettling = true;
+        } else if (!settleAnim.running) {
+            settle = 1;
+        }
+    }
     onSettleTriggerChanged: { if (settleTrigger) settleAnim.restart() }
     NumberAnimation {
         id: settleAnim
@@ -147,8 +168,42 @@ PanelWindow {
         easing.overshoot: 1.1
     }
     property bool hoverBlock: false
+    property bool panelHoverRearm: false
     Timer { id: hoverBlockTimer; interval: 420; onTriggered: window.hoverBlock = false }
+
+    Timer {
+        id: panelHoverRearmTimer
+        interval: 200
+        onTriggered: {
+            if (!notchHoverHandler.hovered)
+                window.panelHoverRearm = false;
+        }
+    }
     Timer { id: closeEndTimer; interval: 700; onTriggered: window.closing = false }
+
+    // Wait for panel-close springs to reach the collapsed dimensions.
+    Timer {
+        id: panelSettleTimer
+        interval: 50
+        repeat: true
+        running: window.panelWidthSettling && !window.closing && !ShellState.expanded
+        property int stableTicks: 0
+
+        onRunningChanged: {
+            if (running)
+                stableTicks = 0;
+        }
+
+        onTriggered: {
+            const widthDone = Math.abs(wSpring.value - window.restVisualW) < 1.0;
+            const heightDone = Math.abs(hSpring.value - window.compactHeight) < 1.0;
+
+            stableTicks = widthDone && heightDone ? stableTicks + 1 : 0;
+
+            if (stableTicks >= 3)
+                window.panelWidthSettling = false;
+        }
+    }
     Connections {
         target: ShellState
         function onExpandedChanged() {
@@ -157,6 +212,8 @@ PanelWindow {
             if (window.closing) {
                 closeEndTimer.restart();
                 window.hoverBlock = true;
+                window.panelHoverRearm = true;
+                panelHoverRearmTimer.restart();
                 hoverBlockTimer.restart();
                 hoverEnterTimer.stop();
                 hoverExitTimer.stop();
@@ -183,7 +240,7 @@ PanelWindow {
     Timer { id: revealTimer; interval: 12; onTriggered: window.contentRevealed = ShellState.expanded }
     Timer {
         id: swapTimer
-        interval: 110
+        interval: 70
         onTriggered: {
             window.displayedPanel = ShellState.panel;
             window.contentRevealed = ShellState.expanded;
@@ -488,7 +545,12 @@ PanelWindow {
             width: window.restWidth - 52
             height: window.collapsedHeight
             visible: opacity > 0
-            opacity: window.clockRevealed && !ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive ? 1 : 0
+            property real gate: window.clockRevealed && !ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive && !ShellState.authActive ? 1 : 0
+            opacity: gate * window.pillReveal
+            Behavior on gate {
+                enabled: !window.closing
+                NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
+            }
 
             WorkspaceDots {
                 id: restDots
@@ -504,8 +566,7 @@ PanelWindow {
             RollingClock {
                 id: restClock
                 visible: NotchSettings.cfg.showClock
-                opacity: visible ? Math.min(1, window.stag(0.12)) : 0
-                Behavior on opacity { enabled: window.settle >= 1; NumberAnimation { duration: 120 } }
+                opacity: visible ? Math.min(1, window.stag(0.12)) * (clockBridge.bridgeContext ? 0 : 1) : 0
                 scale: 0.82 + 0.18 * window.stag(0.12)
                 transform: Translate { y: (1 - window.stag(0.12)) * 5 }
                 x: window.restClockX
@@ -542,13 +603,6 @@ PanelWindow {
                 }
             }
 
-            Behavior on opacity {
-                enabled: !window.closing
-                NumberAnimation {
-                    duration: 70
-                    easing.type: Easing.OutCubic
-                }
-            }
         }
 
         Item {
@@ -573,12 +627,14 @@ PanelWindow {
             height: window.hoverHeight
             anchors.leftMargin: 18
             anchors.rightMargin: 18
-            visible: opacity > 0
-            opacity: ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive && !ShellState.expanded ? window.pillIn : 0
+            clip: true
+            property real gate: ShellState.hovered && !ShellState.osdActive && !ShellState.notifActive && !ShellState.authActive && !ShellState.expanded ? window.pillIn : 0
+            visible: gate > 0
+            opacity: gate * window.hoverReveal
 
-            Behavior on opacity {
+            Behavior on gate {
                 NumberAnimation {
-                    duration: 70
+                    duration: ShellState.hovered ? 0 : 55
                     easing.type: Easing.OutCubic
                 }
             }
@@ -612,6 +668,8 @@ PanelWindow {
 
             HoverLayout {
                 id: hoverLayout
+                externalClock: true
+                clockMix: clockBridge.mixOut
                 anchors.fill: parent
                 player: window.hoverPlayer
                 date: clock.date
@@ -625,6 +683,64 @@ PanelWindow {
         }
 
         Item {
+            id: clockBridge
+            // clockTravelV2 clockFinalV3
+            z: 6
+            anchors.fill: parent
+
+            readonly property bool ctx: !ShellState.osdActive && !ShellState.notifActive && !ShellState.authActive && !ShellState.expanded && !window.closing && !window.panelWidthSettling
+            readonly property bool hoverOn: ShellState.hovered && ctx
+
+            // Progress follows the actual notch width spring.
+            readonly property real prog: window.hoverProg
+
+            readonly property real c: {
+                const p = Math.max(0, Math.min(1, prog))
+                return hoverOn ? Math.min(1, p / 0.85) : 1 - Math.pow(1 - p, 2)
+            }
+
+            // Keep one clock instance throughout the collapsed-to-hover transition.
+            readonly property bool bridgeContext: ctx && (!ShellState.hovered || NotchSettings.cfg.showHoverClock)
+            visible: NotchSettings.cfg.showClock && bridgeContext
+
+            function mix(a, b, t) {
+                return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1)
+            }
+
+            // Smoothly crossfade into and out of the hover clock
+            readonly property real mixOut: {
+                const t = Math.max(0, Math.min(1, (c - 0.88) / 0.12))
+                return t * t * (3 - 2 * t)
+            }
+
+            RollingClock {
+                id: bridgeClock
+                transformOrigin: Item.TopLeft
+                opacity: 1 - clockBridge.mixOut
+
+                timeText: Qt.formatDateTime(clock.date, window.clockFormat)
+                clockFont: restClock.clockFont
+                textSize: 16
+                textColor: clockBridge.mix(Theme.shellForeground, hoverLayout.clockColor, clockBridge.c)
+
+                readonly property real hoverScale: 22 * hoverLayout.u / textSize
+                scale: 1 + (hoverScale - 1) * clockBridge.c
+
+                x: {
+                    const a = restClock.mapToItem(clockBridge, 0, 0)
+                    const b = hoverLayout.clockItem.mapToItem(clockBridge, 0, 0)
+                    return notchSurface.width >= 0 ? a.x + (b.x - a.x) * clockBridge.c : 0
+                }
+
+                y: {
+                    const a = restClock.mapToItem(clockBridge, 0, 0)
+                    const b = hoverLayout.clockItem.mapToItem(clockBridge, 0, 0)
+                    return notchSurface.height >= 0 ? a.y + (b.y - a.y) * clockBridge.c : 0
+                }
+            }
+        }
+
+        Item {
             anchors.left: notchBody.left
             anchors.right: notchBody.right
             anchors.top: parent.top
@@ -632,7 +748,7 @@ PanelWindow {
             anchors.leftMargin: 16
             anchors.rightMargin: 16
             visible: opacity > 0
-            opacity: ShellState.osdActive && !ShellState.expanded ? 1 : 0
+            opacity: ShellState.osdActive && !ShellState.authActive && !ShellState.expanded ? 1 : 0
 
                         VectorIcon {
                 id: osdIcon
@@ -703,7 +819,7 @@ PanelWindow {
             anchors.leftMargin: 14
             anchors.rightMargin: 14
             visible: opacity > 0
-            opacity: ShellState.notifActive && !ShellState.osdActive && !ShellState.expanded ? 1 : 0
+            opacity: ShellState.notifActive && !ShellState.osdActive && !ShellState.authActive && !ShellState.expanded ? 1 : 0
 
             readonly property var notif: ShellState.activeNotification
             readonly property bool critical: notif !== null && notif.urgency === NotificationUrgency.Critical
@@ -846,24 +962,52 @@ PanelWindow {
 
             readonly property var flow: ShellState.authFlow
 
-            anchors.left: notchBody.left
-            anchors.right: notchBody.right
-            anchors.top: parent.top
-            height: window.authHeight
-            visible: ShellState.authActive
-            z: 50
-            onVisibleChanged: {
-                if (visible) {
-                    passwordField.text = "";
-                    passwordField.forceActiveFocus();
+            // Keep the last text so the prompt doesn't blank out while it fades away.
+            property string shownMessage: ""
+            property string shownAction: ""
+
+            // Fade follows the island's height spring: content appears as the island grows,
+            // and disappears quickly when it closes.
+            property real shown: ShellState.authActive ? 1 : 0
+            readonly property real grow: Math.max(0, Math.min(1, (hSpring.value - window.collapsedHeight) / Math.max(1, window.authHeight - window.collapsedHeight)))
+            readonly property real reveal: shown * Math.max(0, Math.min(1, (grow - 0.35) / 0.5))
+
+            Behavior on shown {
+                NumberAnimation {
+                    duration: 110
+                    easing.type: Easing.OutCubic
                 }
             }
 
-            Rectangle {
-                anchors.fill: parent
-                anchors.topMargin: -15
-                radius: Theme.radius
-                color: Theme.shellBackground
+            Binding {
+                target: authItem
+                property: "shownMessage"
+                value: authItem.flow ? authItem.flow.message : ""
+                when: authItem.flow !== null && authItem.flow !== undefined
+                restoreMode: Binding.RestoreNone
+            }
+
+            Binding {
+                target: authItem
+                property: "shownAction"
+                value: authItem.flow ? authItem.flow.actionId : ""
+                when: authItem.flow !== null && authItem.flow !== undefined
+                restoreMode: Binding.RestoreNone
+            }
+
+            anchors.left: notchBody.left
+            anchors.right: notchBody.right
+            anchors.top: parent.top
+            height: parent.height
+            clip: true
+            visible: ShellState.authActive || shown > 0
+            opacity: reveal
+            z: 50
+            onVisibleChanged: {
+                if (visible && ShellState.authActive) {
+                    passwordField.text = "";
+                    passwordField.forceActiveFocus();
+                }
             }
 
             MouseArea {
@@ -893,6 +1037,7 @@ PanelWindow {
                 anchors.margins: 18
                 anchors.topMargin: 16
                 spacing: 10
+                transform: Translate { y: (1 - authItem.reveal) * -8 }
 
                 Row {
                     width: parent.width
@@ -914,7 +1059,7 @@ PanelWindow {
                         ShellText {
                             width: parent.width
                             elide: Text.ElideRight
-                            text: authItem.flow ? authItem.flow.message : ""
+                            text: authItem.shownMessage
                             color: Theme.shellForeground
                             font.pixelSize: 15
                             font.weight: Font.DemiBold
@@ -923,7 +1068,7 @@ PanelWindow {
                         ShellText {
                             width: parent.width
                             elide: Text.ElideRight
-                            text: authItem.flow ? authItem.flow.actionId : ""
+                            text: authItem.shownAction
                             color: Theme.muted
                             font.pixelSize: 11
                         }
@@ -933,10 +1078,10 @@ PanelWindow {
                 Rectangle {
                     width: parent.width
                     height: 42
-                    radius: Theme.radiusSmall
-                    color: Theme.bg1
-                    border.width: 1
-                    border.color: authItem.flow && authItem.flow.failed ? Theme.red : Theme.bg2
+                    radius: 10
+                    color: (Theme.isLight ? Qt.darker(Theme.cardColor, 1.1) : "#0f0f0f")
+                    border.width: authItem.flow && authItem.flow.failed ? 1 : 0
+                    border.color: Theme.red
 
                     TextInput {
                         id: passwordField
@@ -1038,24 +1183,36 @@ PanelWindow {
             active: ShellState.authActive
         }
 
+        HoverHandler {
+            id: notchHoverHandler
+            enabled: !ShellState.expanded
+            cursorShape: Qt.PointingHandCursor
+            onHoveredChanged: {
+                if (hovered) {
+                    hoverExitTimer.stop();
+                    if (window.hoverBlock || window.closing || window.panelWidthSettling || window.panelHoverRearm)
+                        return;
+                    if (!NotchSettings.cfg.expandOnHover)
+                        return;
+                    if (NotchSettings.cfg.hoverDelay > 0) {
+                        hoverEnterTimer.restart();
+                        return;
+                    }
+                    ShellState.hovered = true;
+                } else {
+                    hoverEnterTimer.stop();
+                    window.panelHoverRearm = false;
+                    panelHoverRearmTimer.stop();
+                    hoverExitTimer.restart();
+                }
+            }
+        }
+
         MouseArea {
+            id: notchHoverArea
+            z: -1
             anchors.fill: parent
             enabled: !ShellState.expanded
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onEntered: {
-                hoverExitTimer.stop();
-                if (window.hoverBlock)
-                    return;
-                if (!NotchSettings.cfg.expandOnHover)
-                    return;
-                if (NotchSettings.cfg.hoverDelay > 0) {
-                    hoverEnterTimer.restart();
-                    return;
-                }
-                ShellState.hovered = true;
-            }
-            onExited: { hoverEnterTimer.stop(); hoverExitTimer.restart(); }
             onClicked: ShellState.show("control")
         }
 
@@ -1190,7 +1347,7 @@ PanelWindow {
             Behavior on opacity {
                 enabled: ShellState.expanded && window.remainMax > 0.9
                 NumberAnimation {
-                    duration: window.contentRevealed ? 110 : 90
+                    duration: window.contentRevealed ? 100 : 60
                     easing.type: Easing.OutCubic
                 }
             }
@@ -1200,15 +1357,18 @@ PanelWindow {
             id: wSpring
             target: window.targetVisualWidth
             animated: NotchSettings.cfg.animationsEnabled
-            omegaUp: window.springOmega; zetaUp: window.springZeta; omegaDown: window.springOmega; zetaDown: window.springZeta
-            Component.onCompleted: snapToTarget()
+            omegaUp: window.springOmegaUp; zetaUp: window.springZetaUp; omegaDown: window.springOmegaDown; zetaDown: window.springZetaDown
+            Component.onCompleted: {
+                snapToTarget();
+                window.hoverProgressReady = true;
+            }
         }
 
         Spring {
             id: hSpring
             target: window.targetVisualHeight
             animated: NotchSettings.cfg.animationsEnabled && !clipboardPanel.previewTransitionActive
-            omegaUp: window.springOmega; zetaUp: window.springZeta; omegaDown: window.springOmega; zetaDown: window.springZeta
+            omegaUp: window.springOmegaUp; zetaUp: window.springZetaUp; omegaDown: window.springOmegaDown; zetaDown: window.springZetaDown
             Component.onCompleted: snapToTarget()
         }
     }
@@ -1323,7 +1483,7 @@ PanelWindow {
 
     Process {
         id: cavaProcess
-        command: ["cava", "-p", "/home/entity303069/.config/cava/notch"]
+        command: ["cava", "-p", Quickshell.env("HOME") + "/.config/cava/notch"]
         running: statusHeader.visible && statusHeader.playing
 
         stdout: SplitParser {
@@ -1343,7 +1503,11 @@ PanelWindow {
     Timer {
         id: hoverEnterTimer
         interval: NotchSettings.cfg.hoverDelay
-        onTriggered: ShellState.hovered = true
+        onTriggered: {
+            if (!window.hoverBlock && !window.closing
+                    && !window.panelWidthSettling && !window.panelHoverRearm)
+                ShellState.hovered = true;
+        }
     }
 
     SystemClock {

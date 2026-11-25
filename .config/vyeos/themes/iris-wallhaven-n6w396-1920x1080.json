@@ -1,0 +1,32 @@
+{
+  "name": "Citrine",
+  "slug": "iris-wallhaven-n6w396-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#18141a",
+    "bg0": "#201a23",
+    "bg1": "#322938",
+    "bg2": "#423849",
+    "bg3": "#53485a",
+    "bg4": "#615568",
+    "primary_container": "#44422d",
+    "secondary_container": "#484539",
+    "foreground": "#c4e0ad",
+    "muted": "#8b9b7d",
+    "muted_dark": "#6a7361",
+    "red": "#d0959f",
+    "orange": "#b6b054",
+    "yellow": "#d5de87",
+    "green": "#a1d095",
+    "aqua": "#95d0b7",
+    "blue": "#95bcd0",
+    "purple": "#ae95d0",
+    "primary": "#c2cf52"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "yellow"
+  },
+  "generated": true
+}

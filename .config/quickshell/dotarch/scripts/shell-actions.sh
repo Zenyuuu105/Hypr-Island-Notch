@@ -240,7 +240,7 @@ case "$action" in
       directory=${XDG_VIDEOS_DIR:-"$HOME/Videos"}/Recordings
       mkdir -p "$directory"
       output="$directory/recording-$(date +%Y%m%d-%H%M%S).mp4"
-      wf-recorder -f "$output" >/dev/null 2>&1 &
+      wf-recorder --audio="$(pactl get-default-sink).monitor" -f "$output" >/dev/null 2>&1 &
       printf '%s\n' "$!" > "$recording_pid_file"
       printf 'recording-started\n'
     fi

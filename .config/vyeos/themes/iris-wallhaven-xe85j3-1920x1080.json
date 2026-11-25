@@ -1,0 +1,32 @@
+{
+  "name": "Ember",
+  "slug": "iris-wallhaven-xe85j3-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#522319",
+    "bg0": "#6e2f21",
+    "bg1": "#893a2a",
+    "bg2": "#934738",
+    "bg3": "#9e5545",
+    "bg4": "#a76051",
+    "primary_container": "#6b464e",
+    "secondary_container": "#7e4a2c",
+    "foreground": "#f6c3ac",
+    "muted": "#c68f7b",
+    "muted_dark": "#ab7260",
+    "red": "#c37972",
+    "orange": "#d0ab95",
+    "yellow": "#b6aa54",
+    "green": "#54b667",
+    "aqua": "#95c7d0",
+    "blue": "#6099ef",
+    "purple": "#a99cd3",
+    "primary": "#6099ef"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

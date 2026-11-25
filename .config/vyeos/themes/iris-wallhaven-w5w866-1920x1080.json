@@ -1,0 +1,32 @@
+{
+  "name": "Forest",
+  "slug": "iris-wallhaven-w5w866-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#112623",
+    "bg0": "#17332f",
+    "bg1": "#234b45",
+    "bg2": "#34615a",
+    "bg3": "#457770",
+    "bg4": "#548a82",
+    "primary_container": "#285137",
+    "secondary_container": "#365137",
+    "foreground": "#daf3f7",
+    "muted": "#96b0b1",
+    "muted_dark": "#6f8989",
+    "red": "#d09b95",
+    "orange": "#d0c695",
+    "yellow": "#a2bc55",
+    "green": "#66bc55",
+    "aqua": "#66a39a",
+    "blue": "#95bcd0",
+    "purple": "#9a95d0",
+    "primary": "#66bc55"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Azure",
+  "slug": "iris-wallhaven-v9gkgm-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#01172d",
+    "bg0": "#011f3c",
+    "bg1": "#02315f",
+    "bg2": "#16426d",
+    "bg3": "#29537b",
+    "bg4": "#3a6187",
+    "primary_container": "#123d66",
+    "secondary_container": "#284650",
+    "foreground": "#b3cfe6",
+    "muted": "#7591ab",
+    "muted_dark": "#516e88",
+    "red": "#d0c095",
+    "orange": "#e69875",
+    "yellow": "#b3d095",
+    "green": "#95d0a3",
+    "aqua": "#63bcaa",
+    "blue": "#4fa7fa",
+    "purple": "#bf95d0",
+    "primary": "#4fa7fa"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

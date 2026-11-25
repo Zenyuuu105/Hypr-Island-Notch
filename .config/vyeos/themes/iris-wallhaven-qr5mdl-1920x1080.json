@@ -1,0 +1,32 @@
+{
+  "name": "Terracotta",
+  "slug": "iris-wallhaven-qr5mdl-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#2e2720",
+    "bg0": "#3e342b",
+    "bg1": "#534639",
+    "bg2": "#5f5246",
+    "bg3": "#6c5e52",
+    "bg4": "#76695d",
+    "primary_container": "#644b3e",
+    "secondary_container": "#584e34",
+    "foreground": "#e7c398",
+    "muted": "#ac9172",
+    "muted_dark": "#8a745c",
+    "red": "#e9967c",
+    "orange": "#ea9b82",
+    "yellow": "#b6a854",
+    "green": "#9dd095",
+    "aqua": "#95b7d0",
+    "blue": "#9b95d0",
+    "purple": "#c895d0",
+    "primary": "#ea9b82"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "red"
+  },
+  "generated": true
+}

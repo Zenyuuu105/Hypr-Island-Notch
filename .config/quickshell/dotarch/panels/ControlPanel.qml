@@ -368,8 +368,8 @@ FocusScope {
 
     implicitWidth: 440
     // Strictly bind to layout height to force the Wayland surface to shrink properly
-    implicitHeight: content.height 
-    
+    implicitHeight: content.height
+
     onWifiDeviceChanged: {
         if (root.wifiDevice && root.expandedSection === "wifi")
             root.startWifiScanner();
@@ -1517,42 +1517,6 @@ FocusScope {
                 }
             }
 
-            footer: Item {
-                id: micFixFooter
-
-                property bool fixing: false
-
-                width: inputAudioList.width
-                height: micFixRow.height + 6
-
-                Timer {
-                    id: micFixTimer
-
-                    interval: 15000
-                    onTriggered: micFixFooter.fixing = false
-                }
-
-                NetRow {
-                    id: micFixRow
-
-                    y: 6
-                    width: parent.width
-                    icon: "\uDB81\uDC50"
-                    title: "Fix microphone"
-                    subtitle: micFixFooter.fixing ? "Reconnecting headset…" : "Reconnect headset and switch to mic mode"
-                    active: false
-                    actionText: micFixFooter.fixing ? "Working" : "Run"
-                    onClicked: {
-                        if (micFixFooter.fixing)
-                            return;
-
-                        micFixFooter.fixing = true;
-                        micFixTimer.restart();
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/mic-fix"]);
-                    }
-                }
-            }
-
             delegate: NetRow {
                 required property var modelData
                 readonly property bool isDefault: root.source && modelData.id === root.source.id
@@ -1594,18 +1558,9 @@ FocusScope {
                 id: inputFooter
 
                 readonly property bool micMuted: root.paMuted
-                property bool fixing: false
-
                 width: outputAudioList.width
                 topPadding: 16
                 spacing: 12
-
-                Timer {
-                    id: inputFixTimer
-
-                    interval: 15000
-                    onTriggered: inputFooter.fixing = false
-                }
 
                 SectionLabel {
                     width: outputAudioList.width
@@ -1650,22 +1605,7 @@ FocusScope {
                     }
                 }
 
-                NetRow {
-                    width: outputAudioList.width
-                    icon: "\uDB81\uDC50"
-                    title: "Fix microphone"
-                    subtitle: inputFooter.fixing ? "Reconnecting headset…" : "Reconnect headset and switch to mic mode"
-                    active: false
-                    actionText: inputFooter.fixing ? "Working" : "Run"
-                    onClicked: {
-                        if (inputFooter.fixing)
-                            return;
 
-                        inputFooter.fixing = true;
-                        inputFixTimer.restart();
-                        Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/mic-fix"]);
-                    }
-                }
             }
 
             delegate: NetRow {

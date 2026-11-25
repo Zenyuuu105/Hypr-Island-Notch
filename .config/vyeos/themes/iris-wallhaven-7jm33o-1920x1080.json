@@ -1,0 +1,32 @@
+{
+  "name": "Blush",
+  "slug": "iris-wallhaven-7jm33o-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#103256",
+    "bg0": "#164373",
+    "bg1": "#1c5491",
+    "bg2": "#2d629c",
+    "bg3": "#3e70a7",
+    "bg4": "#4c7cb0",
+    "primary_container": "#475d7e",
+    "secondary_container": "#45647e",
+    "foreground": "#f7cdc0",
+    "muted": "#a89da5",
+    "muted_dark": "#7b8196",
+    "red": "#f2af9c",
+    "orange": "#f3b7a5",
+    "yellow": "#eadaa4",
+    "green": "#95d0a5",
+    "aqua": "#3ccdc1",
+    "blue": "#6d849c",
+    "purple": "#b398d7",
+    "primary": "#f3b7a5"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "red"
+  },
+  "generated": true
+}

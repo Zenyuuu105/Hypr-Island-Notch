@@ -1,0 +1,32 @@
+{
+  "name": "Meadow",
+  "slug": "iris-wallhaven-d825k3-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#254922",
+    "bg0": "#31612e",
+    "bg1": "#3d7a39",
+    "bg2": "#4b8748",
+    "bg3": "#5a9356",
+    "bg4": "#669e63",
+    "primary_container": "#407159",
+    "secondary_container": "#4e7536",
+    "foreground": "#cbe9ef",
+    "muted": "#95b9ab",
+    "muted_dark": "#769e85",
+    "red": "#dfb7b9",
+    "orange": "#d0bf97",
+    "yellow": "#b6bc53",
+    "green": "#6aa267",
+    "aqua": "#95d0af",
+    "blue": "#74aaf2",
+    "purple": "#deb5d6",
+    "primary": "#74aaf2"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}

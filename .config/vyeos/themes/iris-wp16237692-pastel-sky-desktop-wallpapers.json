@@ -1,0 +1,32 @@
+{
+  "name": "Pastel Horizon",
+  "slug": "iris-wp16237692-pastel-sky-desktop-wallpapers",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#1c384b",
+    "bg0": "#254a64",
+    "bg1": "#2e5d7e",
+    "bg2": "#3c6a8a",
+    "bg3": "#4a7696",
+    "bg4": "#5681a0",
+    "primary_container": "#4d556d",
+    "secondary_container": "#4b636f",
+    "foreground": "#e9beca",
+    "muted": "#a495a6",
+    "muted_dark": "#7d7e92",
+    "red": "#d97d8e",
+    "orange": "#d9a27d",
+    "yellow": "#d0bc95",
+    "green": "#95d09f",
+    "aqua": "#46c3ab",
+    "blue": "#6a899f",
+    "purple": "#c19ed4",
+    "primary": "#d97d8e"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "red"
+  },
+  "generated": true
+}

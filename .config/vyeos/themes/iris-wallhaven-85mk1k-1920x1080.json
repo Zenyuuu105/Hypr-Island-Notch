@@ -1,0 +1,32 @@
+{
+  "name": "Verdant",
+  "slug": "iris-wallhaven-85mk1k-1920x1080",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#124e58",
+    "bg0": "#186876",
+    "bg1": "#1e8194",
+    "bg2": "#2d8b9d",
+    "bg3": "#3d95a6",
+    "bg4": "#4a9ead",
+    "primary_container": "#2e7c70",
+    "secondary_container": "#3f7f7e",
+    "foreground": "#ced7cb",
+    "muted": "#8eb0ad",
+    "muted_dark": "#6a9a9c",
+    "red": "#e0caba",
+    "orange": "#b3be4c",
+    "yellow": "#c9d29b",
+    "green": "#add8a9",
+    "aqua": "#a7d7c4",
+    "blue": "#b9d1df",
+    "purple": "#cdc0e3",
+    "primary": "#7ec45d"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "green"
+  },
+  "generated": true
+}

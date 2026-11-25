@@ -1,0 +1,32 @@
+{
+  "name": "Blue Hour",
+  "slug": "iris-gemini-generated-image-kovs73kovs73kovs",
+  "appearance": "dark",
+  "colors": {
+    "bg_dim": "#182240",
+    "bg0": "#202e56",
+    "bg1": "#2a3b70",
+    "bg2": "#36477a",
+    "bg3": "#425385",
+    "bg4": "#4d5d8e",
+    "primary_container": "#30436f",
+    "secondary_container": "#494d5f",
+    "foreground": "#9fc2e0",
+    "muted": "#738eb0",
+    "muted_dark": "#597194",
+    "red": "#e67e80",
+    "orange": "#d0cf95",
+    "yellow": "#dbbc7f",
+    "green": "#a4d095",
+    "aqua": "#91dbd1",
+    "blue": "#6a8cc7",
+    "purple": "#905fd8",
+    "primary": "#6a8cc7"
+  },
+  "applications": {
+    "neovim": "everforest",
+    "alacritty": "wallpaper",
+    "folder_color": "blue"
+  },
+  "generated": true
+}
