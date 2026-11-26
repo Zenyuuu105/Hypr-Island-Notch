@@ -35,21 +35,39 @@ NAMES = {
     "cute-anime-background-Anime-Wallpapers-evergarden-ghibli-field": "Evergarden Field",
     "cute-anime-background-Anime-Wallpapers-evergarden-konosuba-kamisama-ghibli": "Forest Aurora",
     "cute-anime-background-Anime-Wallpapers-ghibli-ponyo-scenery": "Ponyo Seascape",
-    "Gemini_Generated_Image_9szn899szn899szn": "Gemini Earthlight",
-    "Gemini_Generated_Image_kovs73kovs73kovs": "Gemini Blue Hour",
-    "wallhaven-7jm33o_1920x1080": "Wallhaven Blush",
-    "wallhaven-85mk1k_1920x1080": "Wallhaven Verdant",
-    "wallhaven-d825k3_1920x1080": "Wallhaven Meadow",
-    "wallhaven-n6w396_1920x1080": "Wallhaven Citrine",
-    "wallhaven-pomr6m_1920x1080": "Wallhaven Lime",
-    "wallhaven-qr5mdl_1920x1080": "Wallhaven Terracotta",
-    "wallhaven-qrgdzq_1920x1080": "Wallhaven Lagoon",
-    "wallhaven-v9gkgm_1920x1080": "Wallhaven Azure",
-    "wallhaven-w5w866_1920x1080": "Wallhaven Forest",
-    "wallhaven-xe85j3_1920x1080": "Wallhaven Ember",
-    "wallhaven-yqkl97_1920x1080": "Wallhaven Orchid",
+    "Gemini_Generated_Image_9szn899szn899szn": "Earthlight",
+    "Gemini_Generated_Image_kovs73kovs73kovs": "Blue Hour",
+    "wallhaven-7jm33o_1920x1080": "Blush",
+    "wallhaven-85mk1k_1920x1080": "Verdant",
+    "wallhaven-d825k3_1920x1080": "Meadow",
+    "wallhaven-n6w396_1920x1080": "Citrine",
+    "wallhaven-pomr6m_1920x1080": "Lime",
+    "wallhaven-qr5mdl_1920x1080": "Terracotta",
+    "wallhaven-qrgdzq_1920x1080": "Lagoon",
+    "wallhaven-v9gkgm_1920x1080": "Azure",
+    "wallhaven-w5w866_1920x1080": "Forest",
+    "wallhaven-xe85j3_1920x1080": "Ember",
+    "wallhaven-yqkl97_1920x1080": "Orchid",
     "wallpaper-cat-cute-Anime-Wallpapers-flcl-tokyo-hyouka-scenery": "Tokyo Hyouka",
     "wp16237692-pastel-sky-desktop-wallpapers": "Pastel Horizon",
+}
+
+SLUGS = {
+    "1378545": "indigo-reverie",
+    "Gemini_Generated_Image_9szn899szn899szn": "earthlight",
+    "Gemini_Generated_Image_kovs73kovs73kovs": "blue-hour-iris",
+    "wallhaven-7jm33o_1920x1080": "blush",
+    "wallhaven-85mk1k_1920x1080": "verdant",
+    "wallhaven-d825k3_1920x1080": "meadow",
+    "wallhaven-n6w396_1920x1080": "citrine",
+    "wallhaven-pomr6m_1920x1080": "lime",
+    "wallhaven-qr5mdl_1920x1080": "terracotta",
+    "wallhaven-qrgdzq_1920x1080": "lagoon-iris",
+    "wallhaven-v9gkgm_1920x1080": "azure",
+    "wallhaven-w5w866_1920x1080": "forest",
+    "wallhaven-xe85j3_1920x1080": "ember",
+    "wallhaven-yqkl97_1920x1080": "orchid",
+    "wp16237692-pastel-sky-desktop-wallpapers": "pastel-horizon",
 }
 
 FALLBACKS = {
@@ -156,7 +174,10 @@ def convert(data, stem):
         "primary": accent,
     }
 
-    slug = "iris-" + re.sub(r"[^a-z0-9]+", "-", stem.lower()).strip("-")
+    slug = SLUGS.get(
+        stem,
+        "iris-" + re.sub(r"[^a-z0-9]+", "-", stem.lower()).strip("-")
+    )
 
     return {
         "name": NAMES.get(stem, stem.replace("-", " ").title()),
