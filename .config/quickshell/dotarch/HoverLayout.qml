@@ -243,7 +243,7 @@ Item {
                 smooth: true
                 mipmap: true
                 antialiasing: true
-                visible: status === Image.Ready
+                visible: false
                 layer.enabled: true
                 layer.smooth: true
                 layer.mipmap: true
@@ -413,7 +413,7 @@ Item {
                 text: Qt.formatDateTime(root.date, root.timeFormat)
                 color: root.clockColor
                 font.family: root.fontName; renderType: Text.NativeRendering
-                font.pixelSize: Math.round(25 * root.u)
+                font.pixelSize: Math.round(29 * root.u)
                 font.weight: Font.Bold
             }
 
@@ -441,7 +441,7 @@ Item {
                             text: modelData.today ? root.dayNames[index] : root.dayLetters[index]
                             color: modelData.today ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.4)
                             font.family: root.fontName; renderType: Text.NativeRendering
-                            font.pixelSize: Math.round(9.5 * root.u)
+                            font.pixelSize: Math.round(11 * root.u)
                             font.weight: modelData.today ? Font.Bold : Font.Medium
                         }
 
@@ -455,7 +455,7 @@ Item {
                                 text: modelData.num
                                 color: modelData.today ? root.accent : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
                                 font.family: root.fontName; renderType: Text.NativeRendering
-                                font.pixelSize: Math.round((modelData.today ? 17 : 12) * root.u)
+                                font.pixelSize: Math.round((modelData.today ? 19 : 14) * root.u)
                                 font.weight: modelData.today ? Font.Bold : Font.Medium
                             }
                         }
