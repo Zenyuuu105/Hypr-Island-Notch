@@ -4,7 +4,7 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Io
 
-// hover-layout v11
+// hover-layout v12
 Item {
     id: root
 
@@ -39,25 +39,28 @@ Item {
     }
 
     // constant scale from the FINAL pill size
+    // the design below is drawn in plain pixels for a 500x122 pill (u = 1);
+    // a different pill size just scales everything proportionally
     property real boost: 1.3
-    readonly property real finalH: NotchSettings.cfg.expandedHeight > 0 ? NotchSettings.cfg.expandedHeight : 106
-    readonly property real finalW: NotchSettings.cfg.expandedWidth > 0 ? NotchSettings.cfg.expandedWidth : 445
-    readonly property real u: finalH / 100
-    readonly property real contentW: finalW - 40
+    readonly property real finalH: NotchSettings.cfg.expandedHeight > 0 ? NotchSettings.cfg.expandedHeight : 122
+    readonly property real finalW: NotchSettings.cfg.expandedWidth > 0 ? NotchSettings.cfg.expandedWidth : 500
+    readonly property real u: finalH / 122
+    readonly property real sidePad: Math.round(24 * u)            // pill edge to art / week strip
+    readonly property real contentW: finalW - 2 * sidePad
 
     // ---------- left cluster geometry (everything derives from u) ----------
-    readonly property real artSize: Math.round(64 * u)            // big album art
+    readonly property real artSize: Math.round(74 * u)            // big album art
     readonly property real vizH: Math.round(11 * u)
     readonly property real vizGap: Math.round(5 * u)
     readonly property real stackH: artSize + vizGap + vizH
-    readonly property real infoX: artSize + Math.round(16 * u)    // where title / controls start
-    readonly property real ctlSize: Math.round(18 * u)            // glyph box of each control
+    readonly property real infoX: artSize + Math.round(18 * u)    // where title / controls start
+    readonly property real ctlSize: Math.round(22 * u)            // glyph box of each control
     readonly property real ctlGap: Math.round(12 * u)
     readonly property real ctlInset: ctlSize * 0.25               // empty margin inside each 24x24 icon box
     readonly property real ctlRowW: 3 * ctlSize + 2 * ctlGap
     // visualizer: runs along the bottom from the art's left edge to the end of the left-side
     // elements (the longer of the title/artist text and the forward button, capped at the text area)
-    readonly property real infoRight: contentW - rightW - 30 * u
+    readonly property real infoRight: contentW - rightW - 36 * u  // breathing room before the clock block
     readonly property real textEnd: infoX + Math.max(titleText.implicitWidth, artistText.implicitWidth)
     readonly property real vizW: Math.max(infoX + ctlRowW - 2 * ctlInset, Math.min(infoRight, textEnd))
     readonly property real vizT: Math.max(2, Math.round(2 * u))    // line thickness
@@ -240,10 +243,27 @@ Item {
                 smooth: true
                 mipmap: true
                 antialiasing: true
-                visible: false
+                visible: status === Image.Ready
                 layer.enabled: true
                 layer.smooth: true
                 layer.mipmap: true
+            }
+            Item {
+                id: musicFallback
+                anchors.centerIn: parent
+                width: Math.round(38 * root.u)
+                height: Math.round(38 * root.u)
+                visible: art.status !== Image.Ready
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "♪"
+                    color: root.ink
+                    opacity: 0.9
+                    font.family: "SF Pro Display"
+                    font.pixelSize: Math.round(36 * root.u)
+                    font.weight: Font.DemiBold
+                }
             }
             Rectangle {
                 id: artMask
@@ -326,7 +346,7 @@ Item {
                     text: root.player && root.player.trackTitle ? root.player.trackTitle : "Nothing playing"
                     color: root.ink
                     font.family: root.fontName; renderType: Text.NativeRendering
-                    font.pixelSize: Math.round(14 * root.u)
+                    font.pixelSize: Math.round(16 * root.u)
                     font.weight: Font.Bold
                 }
                 Text {
@@ -338,7 +358,7 @@ Item {
                     text: root.player ? root.player.trackArtist : ""
                     color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
                     font.family: root.fontName; renderType: Text.NativeRendering
-                    font.pixelSize: Math.round(11 * root.u)
+                    font.pixelSize: Math.round(12.5 * root.u)
                     font.weight: Font.Medium
                 }
             }
@@ -376,12 +396,14 @@ Item {
         }
 
         // ---------- right: clock + week strip ----------
+        // vertically centred on the art row, so the art, the text block and this
+        // block share the same centre line (the visualizer sits below as a footer)
         Column {
             id: rightCol
             anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
+            y: content.stackTop + Math.round((root.artSize - height) / 2)
             width: root.rightW
-            spacing: Math.round(6 * root.u)
+            spacing: Math.round(8 * root.u)
 
             Text {
                 id: clockText
@@ -391,7 +413,7 @@ Item {
                 text: Qt.formatDateTime(root.date, root.timeFormat)
                 color: root.clockColor
                 font.family: root.fontName; renderType: Text.NativeRendering
-                font.pixelSize: Math.round(22 * root.u)
+                font.pixelSize: Math.round(25 * root.u)
                 font.weight: Font.Bold
             }
 
@@ -419,7 +441,7 @@ Item {
                             text: modelData.today ? root.dayNames[index] : root.dayLetters[index]
                             color: modelData.today ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.4)
                             font.family: root.fontName; renderType: Text.NativeRendering
-                            font.pixelSize: Math.round(8.5 * root.u)
+                            font.pixelSize: Math.round(9.5 * root.u)
                             font.weight: modelData.today ? Font.Bold : Font.Medium
                         }
 
@@ -433,7 +455,7 @@ Item {
                                 text: modelData.num
                                 color: modelData.today ? root.accent : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
                                 font.family: root.fontName; renderType: Text.NativeRendering
-                                font.pixelSize: Math.round((modelData.today ? 15 : 11) * root.u)
+                                font.pixelSize: Math.round((modelData.today ? 17 : 12) * root.u)
                                 font.weight: modelData.today ? Font.Bold : Font.Medium
                             }
                         }
